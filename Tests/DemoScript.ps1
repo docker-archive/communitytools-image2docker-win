@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 
-Remove-Module -Name DockerMigrate -ErrorAction Ignore
+Remove-Module -Name Image2Docker -ErrorAction Ignore
 Import-Module -Name (Split-Path -Path $PSScriptRoot -Parent)
 
 Clear-JunctionLinks
