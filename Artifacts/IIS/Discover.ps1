@@ -19,7 +19,7 @@ param (
 $ArtifactName = Split-Path -Path $PSScriptRoot -Leaf
 Write-Verbose -Message ('Started discovering {0} artifact' -f $ArtifactName)
 
-### Path to the Apache manifest
+### Path to the manifest
 $Manifest = '{0}\{1}.json' -f $OutputPath, $ArtifactName
 
 ### Create a HashTable to store the results (this will get persisted to JSON)
@@ -28,13 +28,14 @@ $ManifestResult = @{
     Status = ''
 }
 
-$Apache = Get-ChildItem -Path $MountPath\Apache\* -Recurse -Include httpd.exe
+$IIS = Get-WindowsOptionalFeature -Name Web-Server -Path $MountPath 
 
-if ($Apache.Count -ge 1) {
-    Write-Verbose -Message 'Discovered IIS service'
+if ($IIS.Status -eq 'Present') {
+    Write-Verbose -Message 'IIS service is present on the system'
     $ManifestResult.Status = 'Present'
 }
 else {
+    Write-Verbose -Message 'IIS service is NOT present on the system'
     $ManifestResult.Status = 'Absent'
 }
 

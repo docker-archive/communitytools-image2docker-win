@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Generates Dockerfile contents for Internet Information Services (IIS) component 
+Generates Dockerfile contents for Internet Information Services (IIS) feature 
 
 .PARAMETER ManifestPath
 The filesystem path where the JSON manifests are stored.
