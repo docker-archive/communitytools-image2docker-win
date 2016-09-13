@@ -7,8 +7,8 @@ describe Image2Docker {
     Import-Module -Name (Split-Path -Path $PSScriptRoot -Parent)
 
     context 'Public-facing PowerShell commands' {
-        it 'Has a Convert-WindowsImage command' {
-            (Get-Command -Module $ModuleName -Name Convert-WindowsImage).Count | Should Be 1
+        it 'Has a ConvertTo-Dockerfile command' {
+            (Get-Command -Module $ModuleName -Name ConvertTo-Dockerfile).Count | Should Be 1
         }
 
         it 'Has a Get-WindowsArtifacts command' {
@@ -27,9 +27,9 @@ describe Image2Docker {
         }
     }
 
-    context 'Test Convert-WindowsImage command' {
+    context 'Test ConvertTo-Dockerfile command' {
         it 'Should throw when -ImagePath parameter value is invalid' {
-            { Convert-WindowsImage -ImagePath c:\invalid\path.wim } | Should throw
+            { ConvertTo-Dockerfile -ImagePath c:\invalid\path.wim } | Should throw
         }
     }
 
