@@ -11,11 +11,11 @@ $ImagePath = 'D:\data\Virtual Machines\Docker\docker-2016tp5\Virtual Hard Disks\
 
 Remove-Item -Path C:\ArtofShell\* -Recurse -Force
 
-Convert-WindowsImage -ImagePath $ImagePath -OutputPath c:\ArtofShell\Apache -Artifact Apache -Verbose
+ConvertTo-Dockerfile -ImagePath $ImagePath -OutputPath c:\ArtofShell\Apache -Artifact Apache -Verbose
 
-Convert-WindowsImage -ImagePath $ImagePath -OutputPath c:\ArtofShell\Apache-DNS -Artifact Apache, DNSServer -Verbose
+ConvertTo-Dockerfile -ImagePath $ImagePath -OutputPath c:\ArtofShell\Apache-DNS -Artifact Apache, DNSServer -Verbose
 
-Convert-WindowsImage -ImagePath $ImagePath -OutputPath c:\ArtofShell\AddRemovePrograms -Artifact AddRemovePrograms -Verbose
+ConvertTo-Dockerfile -ImagePath $ImagePath -OutputPath c:\ArtofShell\AddRemovePrograms -Artifact AddRemovePrograms -Verbose
 
-Convert-WindowsImage -ImagePath $ImagePath -OutputPath c:\ArtofShell\IIS -Artifact IIS -Verbose
+ConvertTo-Dockerfile -ImagePath $ImagePath -OutputPath c:\ArtofShell\IIS -Artifact IIS -Verbose
 

@@ -16,6 +16,31 @@ param (
     [string] $OutputPath
 )
 
+function GetVirtualDirectories {
+    ### Helper function to obtain list of virtual directories
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string] $MountPath
+    )
+
+    $IISConfig = [xml](Get-Content -Path $MountPath\Windows\System32\inetsrv\config\applicationHost.config)
+
+    return $IISConfig.configuration.'system.applicationHost'.sites.site.name
+}
+
+function GetHttpHandlerMappings {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string] $MountPath
+    )
+
+    $IISConfig = [xml](Get-Content -Path $MountPath\Windows\System32\inetsrv\config\applicationHost.config)
+
+    return $IISConfig.configuration.'system.webServer'.handlers.add.name
+}
+
 $ArtifactName = Split-Path -Path $PSScriptRoot -Leaf
 Write-Verbose -Message ('Started discovering {0} artifact' -f $ArtifactName)
 
@@ -26,6 +51,8 @@ $Manifest = '{0}\{1}.json' -f $OutputPath, $ArtifactName
 $ManifestResult = @{
     Name = 'IIS'
     Status = ''
+    VirtualDirectories = GetVirtualDirectories -MountPath $MountPath
+    HttpHandlers = GetHttpHandlerMappings -MountPath $MountPath
 }
 
 $IIS = Get-WindowsOptionalFeature -Name Web-Server -Path $MountPath 

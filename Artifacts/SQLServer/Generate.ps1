@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Generates Dockerfile contents for Internet Information Services (IIS) feature 
+Generates Dockerfile contents for Microsoft SQL Server 
 
 .PARAMETER ManifestPath
 The filesystem path where the JSON manifests are stored.
@@ -20,9 +20,10 @@ $Artifact = Get-Content -Path $Manifest -Raw | ConvertFrom-Json
 
 if ($Artifact.Status -eq 'Present') {
     $Result = '
-RUN powershell.exe -ExecutionPolicy Bypass -Command Enable-WindowsOptionalFeature -Online -FeatureName Web-Server;
-'
-    foreach ($)
+RUN powershell.exe -ExecutionPolicy Bypass -Command setup.exe /INSTANCENAME= /IACCEPTSQLSERVERLICENSETERMS /QS /CONFIGURATIONFILE=sqlserver.ini 
+
+ENTRYPOINT ["TBD"]'
+
     Write-Output -InputObject $Result
 }
 

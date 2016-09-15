@@ -13,7 +13,7 @@ The Microsoft Windows Server 2016 platform introduces new capabilities for conta
 Prerequisites
 =============
 
-Windows 10 with the Anniversary Update is required on the system that is using this module.
+Windows 10 with the Anniversary Update is required on the system that is using this module. You may also be able to use Windows Server 2016 to run this module. 
 
 =============
 Installation
@@ -30,12 +30,12 @@ Usage
 =============
 
 After installing the ``Image2Docker`` PowerShell module, you will need one or more valid ``.vhdx`` or ``.wim`` files (the "source image").
-To perform a scan of a valid VHDX or WIM image file, simply call the ``Convert-WindowsImage`` command and specify the ``-Path`` parameter, passing in the fully-qualified filesystem path to the source image.
+To perform a scan of a valid VHDX or WIM image file, simply call the ``ConvertTo-Dockerfile`` command and specify the ``-Path`` parameter, passing in the fully-qualified filesystem path to the source image.
 
 ::
 
   ### Perform scan of Windows source image
-  Convert-WindowsImage -Path c:\docker\myimage.wim
+  ConvertTo-Dockerfile -Path c:\docker\myimage.wim
 
 To improve performance of the image scan, you may also specify the artifacts that will be discovered within the image.
 This avoids the performance hit by preventing scanning for artifacts that are intentionally excluded from the scanning process.
@@ -50,7 +50,7 @@ Example:
   Get-WindowsArtifacts
 
   ### Perform scan and Dockerfile generation
-  Convert-WindowsImage -Path c:\docker\myimage.vhdx
+  ConvertTo-Dockerfile -Path c:\docker\myimage.vhdx -Artifact IIS, Apache
 
 =============
 Artifacts

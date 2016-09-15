@@ -1,4 +1,4 @@
-function Convert-WindowsImage {
+function ConvertTo-Dockerfile {
     <#
     .SYNOPSIS
     Scans and converts a valid WIM or VHDX file into a Dockerfile.
@@ -16,7 +16,7 @@ function Convert-WindowsImage {
     Dockerfile will be stored. If you do not specify a path, a temporary directory will be created for you.
 
     .PARAMETER Artifact
-    Specify the discovery artifacts that will be scanned during the Convert-WindowsImage command. 
+    Specify the discovery artifacts that will be scanned during the ConvertTo-Dockerfile command. 
 
     You can obtain the supported list of artifacts by running the Get-WindowsArtifacts command in the same module.
     #>
