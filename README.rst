@@ -2,9 +2,11 @@
 Introduction
 =============
 
-This project aims to simplify the creation of Dockerfiles for Microsoft Windows Server Hyper-V Container images.
+This project aims to provide a framework to simplify the creation of Dockerfiles for Microsoft Windows Server Hyper-V Container 
+images, based upon analysis of existing WIM or VHDX image files.
 
-The Microsoft Windows Server 2016 platform introduces new capabilities for containerizing applications. There are two types of container formats supported on the Microsoft Windows platform:
+The Microsoft Windows Server 2016 platform introduces new capabilities for containerizing applications. 
+There are two types of container formats supported on the Microsoft Windows platform:
 
 - **Hyper-V Containers** - Containers with a dedicated kernel and stronger isolation from other containers
 - **Windows Containers** - application isolation using process and namespace isolation, and a shared kernel with the container host

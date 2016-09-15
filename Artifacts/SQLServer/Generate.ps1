@@ -20,9 +20,14 @@ $Artifact = Get-Content -Path $Manifest -Raw | ConvertFrom-Json
 
 if ($Artifact.Status -eq 'Present') {
     $Result = '
-RUN powershell.exe -ExecutionPolicy Bypass -Command setup.exe /INSTANCENAME= /IACCEPTSQLSERVERLICENSETERMS /QS /CONFIGURATIONFILE=sqlserver.ini 
+### NOTE: You will need to set up a SQL Server answer file for each instance
+RUN powershell.exe -ExecutionPolicy Bypass -Command \
+'
+    $SetupTemplate = 'setup.exe /INSTANCENAME={0} /IACCEPTSQLSERVERLICENSETERMS /QS /CONFIGURATIONFILE=sqlserver.ini; \{1}'
 
-ENTRYPOINT ["TBD"]'
+    foreach ($SqlInstance in $Artifact.SqlInstances) {
+        $Result += $SetupTemplate -f $SqlInstance.Name, "`r`n"
+    }
 
     Write-Output -InputObject $Result
 }

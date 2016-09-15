@@ -20,9 +20,19 @@ $Artifact = Get-Content -Path $Manifest -Raw | ConvertFrom-Json
 
 if ($Artifact.Status -eq 'Present') {
     $Result = '
-RUN powershell.exe -ExecutionPolicy Bypass -Command Enable-WindowsOptionalFeature -Online -FeatureName Web-Server;
+RUN powershell.exe -ExecutionPolicy Bypass -Command \ 
+    Enable-WindowsOptionalFeature -Online -FeatureName Web-Server, IIS-WebServerManagementTools; \
 '
-    foreach ($)
+    ### Add IIS Websites to the Dockerfile
+    foreach ($Website in $Artifact.Websites) {
+        $Result += 'New-Website -Name "{0}" -PhysicalPath "{1}" \{2}' -f $Website.Name, $Website.PhysicalPath, "`r`n"
+    }
+
+    ### Add IIS HTTP handlers to the Dockerfile
+    foreach ($HttpHandler in $Artifact.HttpHandlers) {
+        $Result += 'New-WebHandler -Name "{0}" -Path "{1}" -Verb "{2}" \{3}' -f $HttpHandler.Name, $HttpHandler.Path, $HttpHandler.Verb, "`r`n" 
+    }
+
     Write-Output -InputObject $Result
 }
 

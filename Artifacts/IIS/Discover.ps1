@@ -16,7 +16,7 @@ param (
     [string] $OutputPath
 )
 
-function GetVirtualDirectories {
+function GetWebsites {
     ### Helper function to obtain list of virtual directories
     [CmdletBinding()]
     param (
@@ -26,7 +26,12 @@ function GetVirtualDirectories {
 
     $IISConfig = [xml](Get-Content -Path $MountPath\Windows\System32\inetsrv\config\applicationHost.config)
 
-    return $IISConfig.configuration.'system.applicationHost'.sites.site.name
+    return $IISConfig.configuration.'system.applicationHost'.sites.site.ForEach({ 
+        [PSCustomObject]@{ 
+            Name = $PSItem.name; 
+            PhysicalPath = $PSItem.application.virtualDirectory.physicalPath;
+            }
+        })
 }
 
 function GetHttpHandlerMappings {
@@ -38,7 +43,15 @@ function GetHttpHandlerMappings {
 
     $IISConfig = [xml](Get-Content -Path $MountPath\Windows\System32\inetsrv\config\applicationHost.config)
 
-    return $IISConfig.configuration.'system.webServer'.handlers.add.name
+    $HandlerList = $IISConfig.configuration.'system.webServer'.handlers.add
+
+    foreach ($Handler in $HandlerList) {
+        Write-Output -InputObject ([PSCustomObject]@{
+            Name = $Handler.name
+            Path = $Handler.path
+            Verb = $Handler.verb
+            })
+    }
 }
 
 $ArtifactName = Split-Path -Path $PSScriptRoot -Leaf
@@ -51,7 +64,7 @@ $Manifest = '{0}\{1}.json' -f $OutputPath, $ArtifactName
 $ManifestResult = @{
     Name = 'IIS'
     Status = ''
-    VirtualDirectories = GetVirtualDirectories -MountPath $MountPath
+    Websites = GetWebsites -MountPath $MountPath
     HttpHandlers = GetHttpHandlerMappings -MountPath $MountPath
 }
 
