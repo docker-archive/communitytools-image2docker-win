@@ -81,3 +81,17 @@ This project currently supports discovery of the following artifacts:
 - Microsoft SQL Server instances
 - Apache Web Server
 
+=============
+Known Issues
+=============
+
+1. Dism Error: 0x8000000a 
+------------------------------------
+
+You might sometimes receive an error from dism, similar to the following:
+
+  Get-WindowsOptionalFeature : DismOpenSession failed. Error code = 0x8000000a
+
+To work around this problem, specify the artifacts that you wish to discover, using the ``-Artifact`` parameter
+ on the ``ConvertTo-Dockerfile`` command.
+
