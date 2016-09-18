@@ -24,6 +24,6 @@ Remove-Item -Path C:\ArtofShell\* -Recurse -Force -ErrorAction Ignore
 
 #ConvertTo-Dockerfile -ImagePath $ImagePath -OutputPath c:\ArtofShell\DHCPServer -MountPath c:\mounttemp -Artifact DHCPServer -Verbose
 
-#ConvertTo-Dockerfile -ImagePath $ImagePath -OutputPath c:\ArtofShell\DHCPServer-DNSServer-IIS -MountPath c:\mounttemp -Artifact DHCPServer, DNSServer, IIS -Verbose
+ConvertTo-Dockerfile -ImagePath $ImagePath -OutputPath c:\ArtofShell\DHCPServer-DNSServer-IIS -MountPath c:\mounttemp -Artifact DHCPServer, DNSServer, IIS -Verbose
 
-ConvertTo-Dockerfile -ImagePath $ImagePath -OutputPath c:\ArtofShell\AllArtifacts -MountPath c:\mounttemp -Verbose
+#ConvertTo-Dockerfile -ImagePath $ImagePath -OutputPath c:\ArtofShell\AllArtifacts -MountPath c:\mounttemp -Verbose

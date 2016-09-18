@@ -20,11 +20,11 @@ $ArtifactName = Split-Path -Path $PSScriptRoot -Leaf
 Write-Verbose -Message ('Started discovering {0} artifact' -f $ArtifactName)
 
 $Manifest = '{0}\{1}.json' -f $OutputPath, $ArtifactName
-$DNSServer = (Get-WindowsOptionalFeature -Path $MountPath).Where({ $PSItem.Name -match 'DNS-Server-Full-Role|DNS'})
+$DNSServer = Get-WindowsOptionalFeature -Path $MountPath -FeatureName DNS-Server-Full-Role
 
 $ManifestResult = @{
     Name = 'DNS-Server'
-    Status = $DNSServer.State
+    Status = [string] $DNSServer.State
 }
 
 ### Write the result to the manifest file

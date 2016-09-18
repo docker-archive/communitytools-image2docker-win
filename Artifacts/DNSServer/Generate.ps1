@@ -18,6 +18,8 @@ $Manifest = '{0}\{1}.json' -f $ManifestPath, $ArtifactName
 
 $Artifact = Get-Content -Path $Manifest -Raw | ConvertFrom-Json
 
-$Result = 'RUN powershell.exe -ExecutionPolicy Bypass -Command Enable-WindowsOptionalFeature -Online -FeatureName DNS-Server-Full-Role'
+if ($Artifact.Status -eq 'Enabled') {
+    $Result = 'RUN powershell.exe -ExecutionPolicy Bypass -Command Enable-WindowsOptionalFeature -Online -FeatureName DNS-Server-Full-Role'
+}
 
 Write-Output -InputObject $Result

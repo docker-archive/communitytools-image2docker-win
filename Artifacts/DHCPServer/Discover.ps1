@@ -29,11 +29,11 @@ $ManifestResult = @{
 }
 
 if ($DHCPServer.State -eq 'Enabled') {
-    $ManifestResult.State = 'Present'
+    $ManifestResult.Status = 'Present'
     Write-Verbose -Message ('{0} was found installed on the image' -f $ArtifactName)
 }
 else {
-    $ManifestResult.State = 'Absent'    
+    $ManifestResult.Status = 'Absent'    
     Write-Verbose -Message ('{0} was NOT found installed on the image' -f $ArtifactName)
 }
 
