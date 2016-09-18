@@ -68,9 +68,9 @@ $ManifestResult = @{
     HttpHandlers = GetHttpHandlerMappings -MountPath $MountPath
 }
 
-$IIS = Get-WindowsOptionalFeature -Name Web-Server -Path $MountPath 
+$IIS = Get-WindowsOptionalFeature -FeatureName Web-Server -Path $MountPath 
 
-if ($IIS.Status -eq 'Present') {
+if ($IIS.State -eq 'Present') {
     Write-Verbose -Message 'IIS service is present on the system'
     $ManifestResult.Status = 'Present'
 }

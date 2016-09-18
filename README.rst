@@ -76,6 +76,8 @@ This project currently supports discovery of the following artifacts:
 - Microsoft Windows Server Active Directory Domain Services (ADDS)
 - Microsoft Windows Server Domain Name Server (DNS)
 - Microsoft Windows Internet Information Services (IIS)
+  - HTTP Handlers in IIS configuration
+  - IIS Websites and filesystem paths
 - Microsoft SQL Server instances
 - Apache Web Server
 

@@ -1,5 +1,4 @@
 #requires -runasadministrator
-#requires -module ServerManager
 
 enum ImageType {
     Unknown
