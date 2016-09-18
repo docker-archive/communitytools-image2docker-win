@@ -15,12 +15,14 @@ function MountImage {
     param (
         [Parameter(Mandatory = $true)]
         [string] $ImagePath,
+        [AllowNull()]
+        [AllowEmptyString()]
         [Parameter(Mandatory = $false)]
         [string] $MountPath
     )
 
     ### If the user hasn't specified a mount path 
-    if (!$PSBoundParameters.Keys.Contains('MountPath')) {
+    if (!$PSBoundParameters.Keys.Contains('MountPath') -or [string]::IsNullOrEmpty($MountPath)) {
         $MountPath = '{0}\{1}-mount' -f $env:TEMP, (New-Guid).Guid
         Write-Verbose -Message ('User didn''t specify a mount path. Using: {0}' -f $MountPath)
     }

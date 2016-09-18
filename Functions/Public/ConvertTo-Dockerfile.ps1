@@ -19,6 +19,10 @@ function ConvertTo-Dockerfile {
     Specify the discovery artifacts that will be scanned during the ConvertTo-Dockerfile command. 
 
     You can obtain the supported list of artifacts by running the Get-WindowsArtifacts command in the same module.
+
+    .PARAMETER MountPath
+    The filesystem path to the directory where the image will be mounted to for discovery.
+    The folder will be created if it does not exist.
     #>
     [CmdletBinding()]
     param (
@@ -32,6 +36,8 @@ function ConvertTo-Dockerfile {
         [string] $ImagePath,
         [Parameter(Mandatory = $false)]
         [string] $OutputPath,
+        [Parameter(Mandatory = $false)]
+        [string] $MountPath,
         [Parameter(Mandatory = $false)]
         [string[]] $Artifact
     )
@@ -51,7 +57,7 @@ function ConvertTo-Dockerfile {
 
     try {
         ### Mount the image to a directory
-        $Mount = MountImage -ImagePath $ImagePath
+        $Mount = MountImage -ImagePath $ImagePath -MountPath $MountPath
         Write-Verbose -Message ('Finished mounting image to: {0}' -f $Mount.Path)
     }
     catch {

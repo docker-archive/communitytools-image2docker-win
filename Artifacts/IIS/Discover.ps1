@@ -64,15 +64,15 @@ $Manifest = '{0}\{1}.json' -f $OutputPath, $ArtifactName
 $ManifestResult = @{
     Name = 'IIS'
     Status = ''
-    Websites = GetWebsites -MountPath $MountPath
-    HttpHandlers = GetHttpHandlerMappings -MountPath $MountPath
 }
 
 $IIS = Get-WindowsOptionalFeature -FeatureName Web-Server -Path $MountPath 
 
-if ($IIS.State -eq 'Present') {
+if ($IIS.State -eq 'Enabled') {
     Write-Verbose -Message 'IIS service is present on the system'
     $ManifestResult.Status = 'Present'
+    $ManifestResult.Websites = GetWebsites -MountPath $MountPath
+    $ManifestResult.HttpHandlers = GetHttpHandlerMappings -MountPath $MountPath
 }
 else {
     Write-Verbose -Message 'IIS service is NOT present on the system'

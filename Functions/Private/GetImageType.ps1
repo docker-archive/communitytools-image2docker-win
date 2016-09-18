@@ -43,7 +43,7 @@ function GetImageType {
         return [ImageType]::Unknown
     }
     catch {
-        Write-Error -Message 'Error occurred while attempting to inspect the image file.'
+        Write-Error -Message ('Error occurred while attempting to inspect the image file. {0}' -f $PSItem.Exception.Message)
         throw $PSItem
     }
 }

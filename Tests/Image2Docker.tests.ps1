@@ -4,7 +4,8 @@ describe Image2Docker {
 
     ### Remove the module if it's already imported, then re-import it (in case code changed)
     Remove-Module -Name $ModuleName -ErrorAction Ignore
-    Import-Module -Name (Split-Path -Path $PSScriptRoot -Parent)
+    #Import-Module -Name (Split-Path -Path $PSScriptRoot -Parent)
+    Import-Module -Name $PSScriptRoot\..\Image2Docker.psd1
 
     context 'Public-facing PowerShell commands' {
         it 'Has a ConvertTo-Dockerfile command' {

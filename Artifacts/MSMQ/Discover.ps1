@@ -28,7 +28,7 @@ $ManifestResult = @{
     Status = ''
 }
 
-$MSMQ = Get-WindowsOptionalFeature -Name MSMQ-Server -Path $MountPath 
+$MSMQ = Get-WindowsOptionalFeature -FeatureName MSMQ-Server -Path $MountPath 
 
 if ($MSMQ.State -eq 'Enabled') {
     Write-Verbose -Message 'MSMQ service is present'

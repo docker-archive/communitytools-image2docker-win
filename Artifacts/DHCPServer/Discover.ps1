@@ -20,12 +20,21 @@ $ArtifactName = Split-Path -Path $PSScriptRoot -Leaf
 Write-Verbose -Message ('Started discovering {0} artifact' -f $ArtifactName)
 
 $Manifest = '{0}\{1}.json' -f $OutputPath, $ArtifactName
-$DNSServer = (Get-WindowsOptionalFeature -Path $MountPath).Where({ $PSItem.Name -match ''})
 
+$DHCPServer = Get-WindowsOptionalFeature -Path $MountPath -FeatureName DHCPServer
 
 $ManifestResult = @{
-    Name = 'DNS-Server'
-    Status = $DNSServer
+    Name = 'DHCPServer'
+    Status = ''
+}
+
+if ($DHCPServer.State -eq 'Enabled') {
+    $ManifestResult.State = 'Present'
+    Write-Verbose -Message ('{0} was found installed on the image' -f $ArtifactName)
+}
+else {
+    $ManifestResult.State = 'Absent'    
+    Write-Verbose -Message ('{0} was NOT found installed on the image' -f $ArtifactName)
 }
 
 ### Write the result to the manifest file

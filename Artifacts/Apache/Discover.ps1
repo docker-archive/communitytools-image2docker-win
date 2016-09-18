@@ -29,7 +29,10 @@ $ManifestResult = @{
     Path = ''
 }
 
-$Apache = Get-ChildItem -Path $MountPath\Apache\* -Recurse -Include httpd.exe
+$ApachePath = "$MountPath\Apache\*"
+if (Test-Path -Path $ApachePath) {
+    $Apache = Get-ChildItem -Path $ApachePath -Recurse -Include httpd.exe
+}
 
 if ($Apache.Count -ge 1) {
     Write-Verbose -Message ('Discovered Apache Web Server (httpd.exe) at "{0}"' -f $Apache[0].FullName)
