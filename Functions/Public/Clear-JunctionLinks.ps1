@@ -1,4 +1,8 @@
 function Clear-JunctionLinks {
+    <#
+    .Synopsis
+    Simple helper script that removes any discovered junction links from user's $env:TEMP directory.
+    #>
     [CmdletBinding()]
     param (
     )
