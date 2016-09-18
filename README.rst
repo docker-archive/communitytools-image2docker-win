@@ -1,4 +1,3 @@
-=============
 Introduction
 =============
 
@@ -11,13 +10,11 @@ There are two types of container formats supported on the Microsoft Windows plat
 - **Hyper-V Containers** - Containers with a dedicated kernel and stronger isolation from other containers
 - **Windows Containers** - application isolation using process and namespace isolation, and a shared kernel with the container host
 
-=============
 Prerequisites
 =============
 
 Windows 10 with the Anniversary Update is required on the system that is using this module. You may also be able to use Windows Server 2016 to run this module. 
 
-=============
 Installation
 =============
 
@@ -27,7 +24,6 @@ You can also validate the presence of the ``Install-Module`` command by running:
 If the ``PowerShellGet`` module or the ``Install-Module`` commands are not accessible, you may not be running a supported version of PowerShell. 
 Make sure that you are running PowerShell 5.0 or later on a Windows 10 client operating system.
 
-=============
 Usage
 =============
 
@@ -54,7 +50,6 @@ Example:
   ### Perform scan and Dockerfile generation
   ConvertTo-Dockerfile -Path c:\docker\myimage.vhdx -Artifact IIS, Apache
 
-=============
 Artifacts
 =============
 
@@ -66,9 +61,8 @@ Each artifact is represented by a folder in the ``.\Artifacts`` subdirectory, co
 
 You can add your own discovery artifacts to this project, by issuing a pull request. If you don't wish to share the artifacts publicly, you can simply place them into the module's ``.\Artifacts`` directory on each system that will perform image scans.
 
-=============
 Supported Artifacts
-=============
+===================
 
 This project currently supports discovery of the following artifacts:
 
@@ -81,7 +75,6 @@ This project currently supports discovery of the following artifacts:
 - Microsoft SQL Server instances
 - Apache Web Server
 
-=============
 Known Issues
 =============
 
@@ -92,6 +85,6 @@ You might sometimes receive an error from dism, similar to the following:
 
   Get-WindowsOptionalFeature : DismOpenSession failed. Error code = 0x8000000a
 
-To work around this problem, specify the artifacts that you wish to discover, using the ``-Artifact`` parameter
- on the ``ConvertTo-Dockerfile`` command.
 
+To work around this problem, specify the artifacts that you wish to discover, using the ``-Artifact`` parameter
+on the ``ConvertTo-Dockerfile`` command.
