@@ -28,12 +28,12 @@ Usage
 =============
 
 After installing the ``Image2Docker`` PowerShell module, you will need one or more valid ``.vhdx`` or ``.wim`` files (the "source image").
-To perform a scan of a valid VHDX or WIM image file, simply call the ``ConvertTo-Dockerfile`` command and specify the ``-Path`` parameter, passing in the fully-qualified filesystem path to the source image.
+To perform a scan of a valid VHDX or WIM image file, simply call the ``ConvertTo-Dockerfile`` command and specify the ``-ImagePath`` parameter, passing in the fully-qualified filesystem path to the source image.
 
 ::
 
   ### Perform scan of Windows source image
-  ConvertTo-Dockerfile -Path c:\docker\myimage.wim
+  ConvertTo-Dockerfile -ImagePath c:\docker\myimage.wim
 
 To improve performance of the image scan, you may also specify the artifacts that will be discovered within the image.
 This avoids the performance hit by preventing scanning for artifacts that are intentionally excluded from the scanning process.
@@ -48,7 +48,7 @@ Example:
   Get-WindowsArtifacts
 
   ### Perform scan and Dockerfile generation
-  ConvertTo-Dockerfile -Path c:\docker\myimage.vhdx -Artifact IIS, Apache
+  ConvertTo-Dockerfile -ImagePath c:\docker\myimage.vhdx -Artifact IIS, Apache
 
 Artifacts
 =============
