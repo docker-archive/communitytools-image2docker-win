@@ -20,7 +20,7 @@ $Artifact = Get-Content -Path $Manifest -Raw | ConvertFrom-Json
 
 $Result = ''
 foreach ($Item in $Artifact) {
-    $Result = '# {0} {1}' -f $Item, "`r`n"
+    $Result += '# {0} {1}' -f $Item, "`r`n"
 }
 
 Write-Output -InputObject $Result
