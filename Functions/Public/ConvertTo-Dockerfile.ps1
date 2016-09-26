@@ -54,14 +54,15 @@ function ConvertTo-Dockerfile {
     ### Verify the image type before proceeding
     $ImageType = GetImageType -Path $ImagePath
     Write-Verbose -Message ('Image type is: {0}' -f $ImageType)
-
-    try {
-        ### Mount the image to a directory
-        $Mount = MountImage -ImagePath $ImagePath -MountPath $MountPath
-        Write-Verbose -Message ('Finished mounting image to: {0}' -f $Mount.Path)
-    }
-    catch {
-        throw 'Fatal error: couldn''t mount image file: {0}' -f $PSItem
+    if (!$ImageType -eq 'VMDK') {
+        try {
+            ### Mount the image to a directory
+            $Mount = MountImage -ImagePath $ImagePath -MountPath $MountPath
+            Write-Verbose -Message ('Finished mounting image to: {0}' -f $Mount.Path)
+        }
+        catch {
+            throw 'Fatal error: couldn''t mount image file: {0}' -f $PSItem
+        }
     }
 
     ### Perform artifact discovery

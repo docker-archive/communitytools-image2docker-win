@@ -39,7 +39,11 @@ function GetImageType {
             Write-Verbose -Message 'This image appears to be a valid Virtual Hard Drive (VHDX) file.'
             return [ImageType]::VHDX
         }
-
+        ### If the file has a .vmdk extension it is probably a VMDK
+        if ($Image.Count -ge 1 -and $Path -match 'vmdk$') {
+            Write-Verbose -Message 'This image appears to be a valid Virtual Machine Disk (VMDK) file. \n If you have the Microsoft Virtual Machine Converter 3.0 installed, we will attempt to convert it. This will take awhile.'
+            return [ImageType]::VMDK
+        }
         return [ImageType]::Unknown
     }
     catch {
