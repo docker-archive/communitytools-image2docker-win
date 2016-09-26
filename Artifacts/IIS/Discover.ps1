@@ -25,13 +25,14 @@ function GetWebsites {
     )
 
     $IISConfig = [xml](Get-Content -Path $MountPath\Windows\System32\inetsrv\config\applicationHost.config)
-
-    return $IISConfig.configuration.'system.applicationHost'.sites.site.ForEach({ 
+    $Sites = $IISConfig.configuration.'system.applicationHost'.sites
+    $Websites = ForEach ($site in $sites) { 
         [PSCustomObject]@{ 
-            Name = $PSItem.name; 
-            PhysicalPath = $PSItem.application.virtualDirectory.physicalPath;
+            Name = $site.site.name; 
+            PhysicalPath = $site.site.application.virtualDirectory.physicalPath;
             }
-        })
+        }
+    return $Websites 
 }
 
 function GetHttpHandlerMappings {
@@ -66,7 +67,7 @@ $ManifestResult = @{
     Status = ''
 }
 
-$IIS = Get-WindowsOptionalFeature -FeatureName Web-Server -Path $MountPath 
+$IIS = Get-WindowsOptionalFeature -FeatureName IIS-WebServer -Path $MountPath 
 
 if ($IIS.State -eq 'Enabled') {
     Write-Verbose -Message 'IIS service is present on the system'

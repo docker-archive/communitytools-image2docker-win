@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Scans for Add/Remove Programs entries 
+Scans for Add/Remove Programs entries
 
 .PARAMETER MountPath
 The path where the Windows image was mounted to.
@@ -44,7 +44,8 @@ $PathList += Get-ChildItem -Path HKLM:\$TempKey\Wow6432Node\Microsoft\Windows\Cu
 
 ### Obtain DisplayName property from each registry item
 foreach ($Software in $PathList) {
-    $DisplayName = (Get-ItemProperty -Path $Software.PSPath -Name DisplayName -ErrorAction Ignore).DisplayName
+    #$DisplayName = (Get-ItemProperty -Path $Software.PSPath -Name DisplayName -ErrorAction Ignore).DisplayName
+    $DisplayName = ($Software.PSChildName) -replace "\n","" -replace "\r",""
     if ($DisplayName -and $DisplayName -ne '') {
         $SoftwareList += $DisplayName
         Write-Verbose -Message ('Added new Add/Remove Programs software item: {0}' -f $DisplayName)
@@ -60,6 +61,6 @@ $RegistryUnmount = @{
 Start-Process @RegistryUnmount
 Write-Verbose -Message 'Finished unmounting the registry hive'
 
-### Write out the discovery results to the manifest file 
+### Write out the discovery results to the manifest file
 $SoftwareList | ConvertTo-Json | Set-Content -Path $ManifestPath
 Write-Verbose -Message ('Finished discovery for {0} artifact' -f (Split-Path -Path $PSScriptRoot -Leaf))
