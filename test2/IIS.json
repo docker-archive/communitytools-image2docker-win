@@ -1,0 +1,16 @@
+{
+    "Websites":  {
+                     "Name":  [
+                                  "Default Web Site",
+                                  "Mano\u0027s Site"
+                              ],
+                     "PhysicalPath":  [
+                                          "%SystemDrive%\\inetpub\\wwwroot",
+                                          "C:\\inetpub\\wwwroot\\ManoSite"
+                                      ],
+                     "MountPath":  "C:\\Users\\Mano\\AppData\\Local\\Temp\\ec3f9e35-1956-410f-b19b-67eae3749b88-mount"
+                 },
+    "Status":  "Present",
+    "Name":  "IIS",
+    "HttpHandlers":  null
+}

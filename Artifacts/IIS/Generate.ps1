@@ -23,9 +23,15 @@ if ($Artifact.Status -eq 'Present') {
 RUN powershell.exe -ExecutionPolicy Bypass -Command \ 
     Enable-WindowsOptionalFeature -Online -FeatureName Web-Server, IIS-WebServerManagementTools; \
 '
+    $Add = "`r`n"
     [int]$SiteCount = $Artifact.Websites.name.Length;
     for ($i=0;$i -lt $SiteCount;$i++){
+        Write-Verbose -Message ('Creating new website for {0} site' -f $Artifact.Websites.Name[$i])
+        $SitePath = ($Artifact.Websites.MountPath + '\' + (Split-Path $Artifact.Websites.PhysicalPath[$i] -NoQualifier)) -replace '\\%SystemDrive%\\', "\"
         $Result += 'New-Website -Name "{0}" -PhysicalPath "{1}" \{2}' -f $Artifact.Websites.Name[$i], $Artifact.Websites.PhysicalPath[$i], "`r`n"
+        Write-Verbose -Message ('Copying files for {0} site' -f $Artifact.Websites.Name[$i])
+        Copy-Item $SitePath $ManifestPath
+        $Add += "ADD {0} {1}`r`n" -f (Split-Path $Artifact.Websites.PhysicalPath[$i] -Leaf),$Artifact.Websites.PhysicalPath[$i] 
     }
 
     ### Add IIS HTTP handlers to the Dockerfile
@@ -33,6 +39,7 @@ RUN powershell.exe -ExecutionPolicy Bypass -Command \
         $Result += 'New-WebHandler -Name "{0}" -Path "{1}" -Verb "{2}" \{3}' -f $HttpHandler.Name, $HttpHandler.Path, $HttpHandler.Verb, "`r`n" 
     }
 
-    Write-Output -InputObject $Result
+    Write-Output -InputObject ($Result + $Add)
+    
 }
 
