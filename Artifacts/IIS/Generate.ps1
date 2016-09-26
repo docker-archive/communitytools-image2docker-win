@@ -23,9 +23,9 @@ if ($Artifact.Status -eq 'Present') {
 RUN powershell.exe -ExecutionPolicy Bypass -Command \ 
     Enable-WindowsOptionalFeature -Online -FeatureName Web-Server, IIS-WebServerManagementTools; \
 '
-    ### Add IIS Websites to the Dockerfile
-    foreach ($Website in $Artifact.Websites) {
-        $Result += 'New-Website -Name "{0}" -PhysicalPath "{1}" \{2}' -f $Website.Name, $Website.PhysicalPath, "`r`n"
+    [int]$SiteCount = $Artifact.Websites.name.Length;
+    for ($i=0;$i -lt $SiteCount;$i++){
+        $Result += 'New-Website -Name "{0}" -PhysicalPath "{1}" \{2}' -f $Artifact.Websites.Name[$i], $Artifact.Websites.PhysicalPath[$i], "`r`n"
     }
 
     ### Add IIS HTTP handlers to the Dockerfile
