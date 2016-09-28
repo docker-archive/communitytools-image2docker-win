@@ -26,8 +26,7 @@ function GetWebsites {
 
     $IISConfig = [xml](Get-Content -Path $MountPath\Windows\System32\inetsrv\config\applicationHost.config)
     $Sites = $IISConfig.configuration.'system.applicationHost'.sites
-    $Websites = ForEach ($site in $sites) { 
-        
+    $Websites = ForEach ($site in $sites) {        
         [PSCustomObject]@{ 
             Name = $site.site.name; 
             PhysicalPath = $site.site.application.virtualDirectory.physicalPath;
