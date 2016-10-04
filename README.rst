@@ -18,7 +18,7 @@ Windows 10 with the Anniversary Update is required on the system that is using t
 Installation
 =============
 
-Installing this PowerShell module from the PowerShell Gallery is very easy. Simply call ``Install-Module -Name Image2Docker``.
+Installing this PowerShell module from the PowerShell Gallery is very easy. Simply invoke ``Install-Module -Name Image2Docker`` in an administrative prompt.
 If you receive any errors, please validate the presence of the ``PowerShellGet`` module by running this command: ``Get-Command -Name PowerShellGet -ListAvailable``.
 You can also validate the presence of the ``Install-Module`` command by running: ``Get-Command -Module PowerShellGet -Name Install-Module``.
 If the ``PowerShellGet`` module or the ``Install-Module`` commands are not accessible, you may not be running a supported version of PowerShell. 
