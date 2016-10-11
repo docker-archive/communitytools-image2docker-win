@@ -50,12 +50,14 @@ function ConvertTo-Dockerfile {
     }
 
     Write-Verbose -Message ('Starting conversion process')
-
+    Write-Verbose -Message ('test1')
     ### Verify the image type before proceeding
     $ImageType = GetImageType -Path $ImagePath
     Write-Verbose -Message ('Image type is: {0}' -f $ImageType)
+
             try {
             ### Mount the image to a directory
+
             $Mount = MountImage -ImagePath $ImagePath -MountPath $MountPath
             Write-Verbose -Message ('Finished mounting image to: {0}' -f $Mount.Path)
         }
