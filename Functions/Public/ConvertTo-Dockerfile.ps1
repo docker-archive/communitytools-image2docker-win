@@ -16,7 +16,7 @@ function ConvertTo-Dockerfile {
     Dockerfile will be stored. If you do not specify a path, a temporary directory will be created for you.
 
     .PARAMETER Artifact
-    Specify the discovery artifacts that will be scanned during the ConvertTo-Dockerfile command. 
+    Specify the discovery artifacts that will be scanned during the ConvertTo-Dockerfile command.
 
     You can obtain the supported list of artifacts by running the Get-WindowsArtifacts command in the same module.
 
@@ -27,7 +27,7 @@ function ConvertTo-Dockerfile {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true)]
-        [ValidateScript({ 
+        [ValidateScript({
             if (!(Test-Path -Path $PSItem)) {
                 return $false
             }
@@ -54,8 +54,7 @@ function ConvertTo-Dockerfile {
     ### Verify the image type before proceeding
     $ImageType = GetImageType -Path $ImagePath
     Write-Verbose -Message ('Image type is: {0}' -f $ImageType)
-    if (!$ImageType -eq 'VMDK') {
-        try {
+            try {
             ### Mount the image to a directory
             $Mount = MountImage -ImagePath $ImagePath -MountPath $MountPath
             Write-Verbose -Message ('Finished mounting image to: {0}' -f $Mount.Path)
@@ -63,7 +62,6 @@ function ConvertTo-Dockerfile {
         catch {
             throw 'Fatal error: couldn''t mount image file: {0}' -f $PSItem
         }
-    }
 
     ### Perform artifact discovery
     if (!$PSBoundParameters.Keys.Contains('Artifact')) {

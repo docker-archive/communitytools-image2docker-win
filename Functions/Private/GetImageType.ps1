@@ -11,7 +11,7 @@ function GetImageType {
     #>
     [CmdletBinding()]
     param (
-        [ValidateScript({ 
+        [ValidateScript({
             if (Test-Path -Path $PSItem) { $true }
             else { throw 'File does not exist or permission denied.' }
         })]
@@ -28,7 +28,7 @@ function GetImageType {
         }
         Write-Verbose -Message ('Image file {0} contains {1} images' -f $Path, $Image.Count)
 
-        ### If the file name ends with 'wim', or it has more than one image, then it's a WIM 
+        ### If the file name ends with 'wim', or it has more than one image, then it's a WIM
         if ($Image.Count -gt 1 -or ($Path -match 'wim$' -and ($Image.ImageName.Length -ge 1))) {
             Write-Verbose -Message 'This image appears to be a valid Windows Image Format (WIM) file.'
             return [ImageType]::WIM
@@ -39,11 +39,7 @@ function GetImageType {
             Write-Verbose -Message 'This image appears to be a valid Virtual Hard Drive (VHDX) file.'
             return [ImageType]::VHDX
         }
-        ### If the file has a .vmdk extension it is probably a VMDK
-        if ($Image.Count -ge 1 -and $Path -match 'vmdk$') {
-            Write-Verbose -Message 'This image appears to be a valid Virtual Machine Disk (VMDK) file. \n If you have the Microsoft Virtual Machine Converter 3.0 installed, we will attempt to convert it. This will take awhile.'
-            return [ImageType]::VMDK
-        }
+        
         return [ImageType]::Unknown
     }
     catch {
