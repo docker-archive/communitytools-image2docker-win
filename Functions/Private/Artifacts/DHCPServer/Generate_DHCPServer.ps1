@@ -1,6 +1,7 @@
+﻿function Generate_DHCPServer {
 <#
 .SYNOPSIS
-Generates Dockerfile contents for DNS Server component 
+Generates Dockerfile contents for DHCP Server component 
 
 .PARAMETER ManifestPath
 The filesystem path where the JSON manifests are stored.
@@ -18,8 +19,10 @@ $Manifest = '{0}\{1}.json' -f $ManifestPath, $ArtifactName
 
 $Artifact = Get-Content -Path $Manifest -Raw | ConvertFrom-Json
 
-if ($Artifact.Status -eq 'Enabled') {
-    $Result = 'RUN powershell.exe -ExecutionPolicy Bypass -Command Enable-WindowsOptionalFeature -Online -FeatureName DNS-Server-Full-Role'
+if ($Artifact.Status -eq 'Present') {
+    $Result = 'RUN powershell.exe -ExecutionPolicy Bypass -Command Enable-WindowsOptionalFeature -Online -FeatureName DHCPServer'
 }
 
 Write-Output -InputObject $Result
+}
+

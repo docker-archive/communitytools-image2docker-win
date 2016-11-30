@@ -1,3 +1,4 @@
+﻿Function Generate_IIS {
 <#
 .SYNOPSIS
 Generates Dockerfile contents for Internet Information Services (IIS) feature 
@@ -55,5 +56,7 @@ $ExposePorts.ForEach{$ExposeText += "$Expose $_ $EndOfLine" }
 $endOutput = ($Result + $Add + $ExposeText)
 Write-Output $endOutput -NoEnumerate
     
+}
+
 }
 

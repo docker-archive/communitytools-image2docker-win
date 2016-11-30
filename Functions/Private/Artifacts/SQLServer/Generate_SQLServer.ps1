@@ -1,3 +1,4 @@
+﻿function Generate_SQLServer {
 <#
 .SYNOPSIS
 Generates Dockerfile contents for Microsoft SQL Server 
@@ -30,5 +31,8 @@ RUN powershell.exe -ExecutionPolicy Bypass -Command \
     }
 
     Write-Output -InputObject $Result
+}
+
+
 }
 

@@ -1,3 +1,4 @@
+﻿function Discover_Apache {
 <#
 .SYNOPSIS
 Scans for the Apache Web Server 
@@ -47,3 +48,5 @@ else {
 $ManifestResult | ConvertTo-Json | Set-Content -Path $Manifest
 
 Write-Verbose -Message ('Finished discovering {0} artifact' -f $ArtifactName)
+}
+

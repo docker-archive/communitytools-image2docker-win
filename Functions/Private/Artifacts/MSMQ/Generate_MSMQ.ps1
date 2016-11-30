@@ -1,3 +1,4 @@
+﻿function Generate_MSMQ {
 <#
 .SYNOPSIS
 Generates Dockerfile contents for Microsoft Message Queue (MSMQ) Server feature 
@@ -24,5 +25,8 @@ RUN powershell.exe -ExecutionPolicy Bypass -Command Enable-WindowsOptionalFeatur
 
 ENTRYPOINT ["ping", "8.8.8.8", "-t"]'
     Write-Output -InputObject $Result
+}
+
+
 }
 

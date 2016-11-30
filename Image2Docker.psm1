@@ -10,7 +10,7 @@ enum ImageType {
 $ModulePath = $ExecutionContext.SessionState.Module.ModuleBase
 
 ### Import private (internal) functions
-$PrivateFunctionList = Get-ChildItem -Path $PSScriptRoot\Functions\Private -File -Filter *.ps1
+$PrivateFunctionList = Get-ChildItem -Path $PSScriptRoot\Functions\Private -File -Filter *.ps1 -Recurse
 foreach ($File in $PrivateFunctionList) {
     . $File.FullName
 }
@@ -24,3 +24,6 @@ foreach ($File in $PublicFunctionList) {
 }
 
 Remove-Variable -Name File
+
+
+Get-ChildItem -Path $PSScriptRoot\completers\*.ps1 | foreach { . $_.FullName}

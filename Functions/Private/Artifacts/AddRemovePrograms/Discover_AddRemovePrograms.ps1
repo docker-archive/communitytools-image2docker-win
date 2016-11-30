@@ -1,3 +1,4 @@
+﻿function Discover_AddRemovePrograms {
 <#
 .SYNOPSIS
 Scans for Add/Remove Programs entries
@@ -64,3 +65,6 @@ Write-Verbose -Message 'Finished unmounting the registry hive'
 ### Write out the discovery results to the manifest file
 $SoftwareList | ConvertTo-Json | Set-Content -Path $ManifestPath
 Write-Verbose -Message ('Finished discovery for {0} artifact' -f (Split-Path -Path $PSScriptRoot -Leaf))
+
+}
+

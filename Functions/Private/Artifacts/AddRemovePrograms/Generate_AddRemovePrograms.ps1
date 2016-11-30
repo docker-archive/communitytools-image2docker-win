@@ -1,6 +1,7 @@
+﻿function Generate_AddRemovePrograms {
 <#
 .SYNOPSIS
-Generates Dockerfile contents for DHCP Server component 
+Generate Dockerfile contents for Add/Remove Programs entries 
 
 .PARAMETER ManifestPath
 The filesystem path where the JSON manifests are stored.
@@ -13,13 +14,17 @@ param (
 
 $ArtifactName = Split-Path -Path $PSScriptRoot -Leaf
 
-Write-Verbose -Message ('Generating result for {0} component' -f $ArtifactName)
+Write-Verbose -Message ('Generating Dockerfile result for {0} component' -f (Split-Path -Path $PSScriptRoot -Leaf))
 $Manifest = '{0}\{1}.json' -f $ManifestPath, $ArtifactName
 
 $Artifact = Get-Content -Path $Manifest -Raw | ConvertFrom-Json
 
-if ($Artifact.Status -eq 'Present') {
-    $Result = 'RUN powershell.exe -ExecutionPolicy Bypass -Command Enable-WindowsOptionalFeature -Online -FeatureName DHCPServer'
+$Result = ''
+foreach ($Item in $Artifact) {
+    $Result += '# {0} {1}' -f $Item, "`r`n"
 }
 
 Write-Output -InputObject $Result
+
+}
+

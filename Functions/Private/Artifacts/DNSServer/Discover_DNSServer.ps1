@@ -1,6 +1,7 @@
+﻿function Discover_DNSServer {
 <#
 .SYNOPSIS
-Scans for presence of the MSMQ Windows feature 
+Scans for presence of DNS Server component in a Windows image. 
 
 .PARAMETER MountPath
 The path where the Windows image was mounted to.
@@ -19,27 +20,17 @@ param (
 $ArtifactName = Split-Path -Path $PSScriptRoot -Leaf
 Write-Verbose -Message ('Started discovering {0} artifact' -f $ArtifactName)
 
-### Path to the manifest
 $Manifest = '{0}\{1}.json' -f $OutputPath, $ArtifactName
+$DNSServer = Get-WindowsOptionalFeature -Path $MountPath -FeatureName DNS-Server-Full-Role
 
-### Create a HashTable to store the results (this will get persisted to JSON)
 $ManifestResult = @{
-    Name = 'MSMQ'
-    Status = ''
-}
-
-$MSMQ = Get-WindowsOptionalFeature -FeatureName MSMQ-Server -Path $MountPath 
-
-if ($MSMQ.State -eq 'Enabled') {
-    Write-Verbose -Message 'MSMQ service is present'
-    $ManifestResult.Status = 'Present'
-}
-else {
-    Write-Verbose -Message 'MSMQ service was not found'
-    $ManifestResult.Status = 'Absent'
+    Name = 'DNS-Server'
+    Status = [string] $DNSServer.State
 }
 
 ### Write the result to the manifest file
 $ManifestResult | ConvertTo-Json | Set-Content -Path $Manifest
 
 Write-Verbose -Message ('Finished discovering {0} artifact' -f $ArtifactName)
+}
+

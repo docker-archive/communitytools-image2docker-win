@@ -26,7 +26,7 @@ function GenerateDockerfile {
     $Dockerfile = Get-Content -Raw -Path $DockerfileTemplate
     
     foreach ($item in $Artifact) {
-        $Result = & $ModulePath\Artifacts\$item\Generate.ps1 -ManifestPath $ArtifactPath
+        $Result = & "Generate_$item" -ManifestPath $ArtifactPath 
         $Dockerfile += '{0}{1}' -f $Result, "`r`n"
     }
 

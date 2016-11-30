@@ -1,3 +1,4 @@
+﻿function Discover_IIS {
 <#
 .SYNOPSIS
 Scans for presence of the Internet Information Services (IIS) Web Server 
@@ -96,3 +97,6 @@ else {
 $ManifestResult | ConvertTo-Json -Depth 3 | Set-Content -Path $Manifest
 
 Write-Verbose -Message ('Finished discovering {0} artifact' -f $ArtifactName)
+}
+
+

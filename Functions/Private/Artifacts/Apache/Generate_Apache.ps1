@@ -1,3 +1,4 @@
+﻿function Generate_Apache {
 <#
 .SYNOPSIS
 Generates Dockerfile contents for Apache Web Server component 
@@ -33,3 +34,5 @@ if ($Artifact.Status -eq 'Present') {
 }
 
 Write-Output -InputObject $Result
+}
+

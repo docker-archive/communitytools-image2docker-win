@@ -1,6 +1,7 @@
+﻿function Discover_MSMQ {
 <#
 .SYNOPSIS
-Scans for presence of DHCP Server component in a Windows Server image. 
+Scans for presence of the MSMQ Windows feature 
 
 .PARAMETER MountPath
 The path where the Windows image was mounted to.
@@ -19,25 +20,29 @@ param (
 $ArtifactName = Split-Path -Path $PSScriptRoot -Leaf
 Write-Verbose -Message ('Started discovering {0} artifact' -f $ArtifactName)
 
+### Path to the manifest
 $Manifest = '{0}\{1}.json' -f $OutputPath, $ArtifactName
 
-$DHCPServer = Get-WindowsOptionalFeature -Path $MountPath -FeatureName DHCPServer
-
+### Create a HashTable to store the results (this will get persisted to JSON)
 $ManifestResult = @{
-    Name = 'DHCPServer'
+    Name = 'MSMQ'
     Status = ''
 }
 
-if ($DHCPServer.State -eq 'Enabled') {
+$MSMQ = Get-WindowsOptionalFeature -FeatureName MSMQ-Server -Path $MountPath 
+
+if ($MSMQ.State -eq 'Enabled') {
+    Write-Verbose -Message 'MSMQ service is present'
     $ManifestResult.Status = 'Present'
-    Write-Verbose -Message ('{0} was found installed on the image' -f $ArtifactName)
 }
 else {
-    $ManifestResult.Status = 'Absent'    
-    Write-Verbose -Message ('{0} was NOT found installed on the image' -f $ArtifactName)
+    Write-Verbose -Message 'MSMQ service was not found'
+    $ManifestResult.Status = 'Absent'
 }
 
 ### Write the result to the manifest file
 $ManifestResult | ConvertTo-Json | Set-Content -Path $Manifest
 
 Write-Verbose -Message ('Finished discovering {0} artifact' -f $ArtifactName)
+}
+

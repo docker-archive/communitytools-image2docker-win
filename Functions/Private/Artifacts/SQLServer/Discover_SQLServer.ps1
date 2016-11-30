@@ -1,3 +1,4 @@
+﻿Function Discover_SqlServer {
 <#
 .SYNOPSIS
 Scans for presence of the MSMQ Windows feature 
@@ -75,3 +76,5 @@ $ManifestResult = @{
 $ManifestResult | ConvertTo-Json | Set-Content -Path $Manifest
 
 Write-Verbose -Message ('Finished discovering {0} artifact' -f $ArtifactName)
+}
+
