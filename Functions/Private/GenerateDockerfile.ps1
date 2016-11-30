@@ -10,8 +10,13 @@ function GenerateDockerfile {
     param (
         [Parameter(Mandatory = $true)]
         [string] $ArtifactPath,
+        
         [Parameter(Mandatory = $false)]
-        [string[]] $Artifact
+        [string[]] $Artifact,
+
+        [Parameter(Mandatory = $false)]
+        [string[]] $ArtifactParam
+
     )
 
     Write-Verbose -Message 'Generating Dockerfile based on discovered artifacts'
@@ -26,9 +31,16 @@ function GenerateDockerfile {
     $Dockerfile = Get-Content -Raw -Path $DockerfileTemplate
     
     foreach ($item in $Artifact) {
-        $Result = & "Generate_$item" -ManifestPath $ArtifactPath 
-        $Dockerfile += '{0}{1}' -f $Result, "`r`n"
-    }
+        If (! $ArtifactParam) {
+            $Result = & "Generate_$item" -ManifestPath $ArtifactPath 
+            $Dockerfile += '{0}{1}' -f $Result, "`r`n"
+        }
+        else {
+            $Result = & "Generate_$item" -ManifestPath $ArtifactPath -ArtifactParam $ArtifactParam
+            $Dockerfile += '{0}{1}' -f $Result, "`r`n"
+        }
+        
+}
 
     $DockerfilePath = '{0}\Dockerfile' -f $ArtifactPath
     Set-Content -Path $DockerfilePath -Value $Dockerfile
