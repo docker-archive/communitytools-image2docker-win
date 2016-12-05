@@ -76,9 +76,9 @@ PowerShellVersion = '5.0'
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
 FunctionsToExport = @(
-    'Get-WindowsArtifacts'
+    'Get-WindowsArtifact'
     'ConvertTo-Dockerfile'
-    'Clear-JunctionLinks'
+    'Clear-JunctionLink'
 )
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.

@@ -1,11 +1,16 @@
-function GenerateDockerfile {
+﻿function GenerateDockerfile {
+
     <#
     .SYNOPSIS
     This function is responsible for generating a Dockerfile, based on a template.
 
     .PARAMETER ArtifactPath
-    The filesystem path to the artifacts 
+    The filesystem path to the artifacts
+
+    .PARAMETER ArtifactParam
+    This is used for passing parameters to the resulting Generate functions.
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSShouldProcess",'')]
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true)]
@@ -44,4 +49,6 @@ function GenerateDockerfile {
 
     $DockerfilePath = '{0}\Dockerfile' -f $ArtifactPath
     Set-Content -Path $DockerfilePath -Value $Dockerfile
+
 }
+

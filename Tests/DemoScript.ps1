@@ -4,9 +4,9 @@ Remove-Module -Name Image2Docker -ErrorAction Ignore
 #Import-Module -Name (Split-Path -Path $PSScriptRoot -Parent)
 Import-Module -Name $PSScriptRoot\..\Image2Docker.psd1
 
-Clear-JunctionLinks
+Clear-JunctionLink
 
-Get-WindowsArtifacts
+Get-WindowsArtifact
 
 #$ImagePath = 'D:\data\Virtual Machines\Docker\docker-2016tp5\Virtual Hard Disks\docker-2016tp5.vhdx'
 #$ImagePath = "D:\vhds\WindowsServer2016-TP5.2016-08-24.vhdx"

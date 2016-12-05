@@ -1,2 +1,5 @@
+# escape=`
+
 FROM microsoft/windowsservercore
 
+SHELL ["powershell", "-command"]

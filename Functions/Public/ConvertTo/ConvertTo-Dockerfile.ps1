@@ -1,4 +1,5 @@
-function ConvertTo-Dockerfile {
+﻿function ConvertTo-Dockerfile {
+
     <#
     .SYNOPSIS
     Scans and converts a valid WIM or VHDX file into a Dockerfile.
@@ -120,7 +121,7 @@ function ConvertTo-Dockerfile {
 
     ### Perform artifact discovery
     if (!$PSBoundParameters.Keys.Contains('Artifact')) {
-        $Artifact = Get-WindowsArtifacts
+        $Artifact = Get-WindowsArtifact
     }
     if (!$PSBoundParameters.Keys.Contains('ArtifactParam')) {
          DiscoverArtifacts -Artifact $Artifact -OutputPath $OutputPath
@@ -141,4 +142,6 @@ function ConvertTo-Dockerfile {
     ### Dismount the image when inspection is completed
     $null = Dismount-WindowsImage -Path $Mount.Path -Discard
     Write-Verbose -Message ('Finished dismounting the Windows image from {0}' -f $Mount.Path)
+
 }
+

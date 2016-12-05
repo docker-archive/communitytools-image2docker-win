@@ -1,11 +1,16 @@
-﻿Function Generate_IIS_SingleApp {
+﻿Function Generate_Single_IISAPP {
 <#
 .SYNOPSIS
 Generates Dockerfile contents for Internet Information Services (IIS) feature 
 
 .PARAMETER ManifestPath
 The filesystem path where the JSON manifests are stored.
+
+.PARAMETER ArtifactParam
+This should be the Name of the Website that you want to have exported.
 #>
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSShouldProcess",'')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments",'')]
 [CmdletBinding()]
 param (
     [Parameter(Mandatory = $true)]
@@ -56,7 +61,9 @@ $Result += $EndOfLine
     $Add += "ADD config Windows/System32/inetsrv/"
 
 $ExposeText += $EndOfLine
-$ExposePorts.ForEach{$ExposeText += "$Expose $_ $EndOfLine" }    
+if ($ExposePorts.Count -gt 0) {
+    $ExposePorts.ForEach{$ExposeText += "$Expose $_ $EndOfLine" }    
+}
 $endOutput = ($Result + $Add + $ExposeText)
 Write-Output $endOutput -NoEnumerate
     

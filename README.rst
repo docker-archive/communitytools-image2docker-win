@@ -37,7 +37,7 @@ To perform a scan of a valid VHDX or WIM image file, simply call the ``ConvertTo
 
 To improve performance of the image scan, you may also specify the artifacts that will be discovered within the image.
 This avoids the performance hit by preventing scanning for artifacts that are intentionally excluded from the scanning process.
-To discover a list of supported artifacts, use the ``Get-WindowsArtifacts`` command. This command will emit an array of supported artifacts.
+To discover a list of supported artifacts, use the ``Get-WindowsArtifact`` command. This command will emit an array of supported artifacts.
 Once you have identified one or more artifacts that you would like to scan for, simply add the ``
 
 Example:  
@@ -45,7 +45,7 @@ Example:
 ::
 
   ### List out supported artifacts
-  Get-WindowsArtifacts
+  Get-WindowsArtifact
 
   ### Perform scan and Dockerfile generation
   ConvertTo-Dockerfile -ImagePath c:\docker\myimage.vhdx -Artifact IIS, Apache

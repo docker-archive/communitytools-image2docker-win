@@ -9,6 +9,7 @@ The path where the Windows image was mounted to.
 .PARAMETER OutputPath
 The filesystem path where the discovery manifest will be emitted.
 #>
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSShouldProcess",'')]
 [CmdletBinding()]
 param (
     [Parameter(Mandatory = $true)]

@@ -6,6 +6,8 @@ Generates Dockerfile contents for Internet Information Services (IIS) feature
 .PARAMETER ManifestPath
 The filesystem path where the JSON manifests are stored.
 #>
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSShouldProcess",'')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments",'')]
 [CmdletBinding()]
 param (
     [Parameter(Mandatory = $true)]

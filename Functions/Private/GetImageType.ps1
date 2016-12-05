@@ -1,4 +1,5 @@
-function GetImageType {
+﻿function GetImageType {
+
     <#
     .SYNOPSIS
     Retrieves the type of the image.
@@ -46,4 +47,6 @@ function GetImageType {
         Write-Error -Message ('Error occurred while attempting to inspect the image file. {0}' -f $PSItem.Exception.Message)
         throw $PSItem
     }
+
 }
+

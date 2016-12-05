@@ -1,4 +1,4 @@
-﻿function Discover_IIS_SingleApp {
+﻿function Discover_Single_IISAPP {
 <#
 .SYNOPSIS
 Scans for presence of the Internet Information Services (IIS) Web Server 
@@ -8,7 +8,11 @@ The path where the Windows image was mounted to.
 
 .PARAMETER OutputPath
 The filesystem path where the discovery manifest will be emitted.
+
+.PARAMETER ArtifactParam
+This should be the Name of the Website that you want to have exported.
 #>
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSShouldProcess",'')]
 [CmdletBinding()]
 param (
     [Parameter(Mandatory = $true)]
@@ -71,7 +75,7 @@ if ($IIS.State -eq 'Enabled') {
                 }
         }
         
-    $HandlerList = $IISConfig | Select-Xml -XPath "//handlers" | Select-Object -ExpandProperty Node | select -ExpandProperty add
+    $HandlerList = $IISConfig | Select-Xml -XPath "//handlers" | Select-Object -ExpandProperty Node | Select-Object -ExpandProperty add
 
     $DefaultHandlers = [xml](Get-Content $PSScriptRoot\DefaultHandlers.xml) | Select-Xml -XPath "//handlers" | Select-Object -ExpandProperty Node | Select-Object -ExpandProperty add
     $handlers = New-object System.Collections.ArrayList
@@ -93,7 +97,10 @@ if ($IIS.State -eq 'Enabled') {
     $ManifestResult.Websites = $Websites
     $ManifestResult.ApplicationPools = $appPools
     $ManifestResult.HttpHandlers = $handlers
-}
+    $ManifestResult.SiteDefaults = $siteDefaults
+    $ManifestResult.ApplicationDefaults = $applicationDefaults
+    $ManifestResult.VirtualDirectoryDefaults = $virtualDirectoryDefaults
+}   
 else {
     Write-Verbose -Message 'IIS service is NOT present on the system'
     $ManifestResult.Status = 'Absent'

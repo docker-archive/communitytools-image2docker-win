@@ -1,11 +1,13 @@
-function Get-WindowsArtifacts {
+function Get-WindowsArtifact {
+
     <#
+
     .SYNOPSIS
     Returns a list of supported artifacts for discovery in a Windows image.
     
     .EXAMPLE
 
-    $Artifacts = Get-WindowsArtifacts
+    $Artifacts = Get-WindowsArtifact
 
     This will return all of the discoverable artifacts and assign the result to the Artifacts Variable
     
@@ -26,4 +28,6 @@ function Get-WindowsArtifacts {
             Write-Verbose -Message ('Valid artifact found: {0}' -f $Artifact.Name)
         }
     }
+
 }
+

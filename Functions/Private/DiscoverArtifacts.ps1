@@ -1,7 +1,17 @@
-function DiscoverArtifacts {
+﻿function DiscoverArtifacts {
+
     <#
     .SYNOPSIS
     Performs discovery of artifacts specified by user
+
+     .PARAMETER Artifact
+    This specifies which artifact/s that you are looking to discover
+
+    .PARAMETER OutputPath
+    This specifies where you want to output discovered items to.
+
+    .PARAMETER ArtifactParam
+    This is used for passing parameters to the resulting Generate functions.
     #>
     [CmdletBinding()]
     param (
@@ -27,4 +37,6 @@ function DiscoverArtifacts {
         & "Discover_$item" -OutputPath $OutputPath -MountPath $Mount.Path -ArtifactParam $ArtifactParam
         }
     }
+
 }
+

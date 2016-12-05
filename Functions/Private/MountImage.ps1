@@ -1,4 +1,5 @@
-function MountImage {
+﻿function MountImage {
+
     <#
     .SYNOPSIS
     Mounts a valid WIM or VHDX image to a directory.
@@ -11,6 +12,7 @@ function MountImage {
 
     NOTE: This parameter is optional. If omitted, a directory will be dynamically created as the mount point.
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSShouldProcess",'')]
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true)]
@@ -35,4 +37,6 @@ function MountImage {
     ### Mount the WIM or VHDX image
     Mount-WindowsImage -ImagePath $ImagePath -Path $MountPath -Index 1
     Write-Verbose -Message ('Finished mounting image {0} at mount point {1}' -f $ImagePath, $MountPath)
+
 }
+
