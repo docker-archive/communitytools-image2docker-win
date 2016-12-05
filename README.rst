@@ -37,7 +37,7 @@ To perform a scan of a valid VHDX or WIM image file, simply call the ``ConvertTo
 
 To improve performance of the image scan, you may also specify the artifacts that will be discovered within the image.
 This avoids the performance hit by preventing scanning for artifacts that are intentionally excluded from the scanning process.
-To discover a list of supported artifacts, use the ``Get-WindowsArtifacts`` command. This command will emit an array of supported artifacts.
+To discover a list of supported artifacts, use the ``Get-WindowsArtifact`` command. This command will emit an array of supported artifacts.
 Once you have identified one or more artifacts that you would like to scan for, simply add the ``
 
 Example:  
@@ -45,7 +45,7 @@ Example:
 ::
 
   ### List out supported artifacts
-  Get-WindowsArtifacts
+  Get-WindowsArtifact
 
   ### Perform scan and Dockerfile generation
   ConvertTo-Dockerfile -ImagePath c:\docker\myimage.vhdx -Artifact IIS, Apache
@@ -54,20 +54,24 @@ Artifacts
 =============
 
 This project supports discovery of custom artifacts.
-Each artifact is represented by a folder in the ``.\Artifacts`` subdirectory, containing two PowerShell script files:
+Each artifact is represented by a folder that is contained within the ``.\Functions\Private\Artifacts`` subdirectory, containing at least two PowerShell script files that contain :
 
-- ``Discover.ps1`` - This script performs discovery of the desired artifact and creates a manifest file. This script *must* accept the following input parameters: ``[string] $MountPath`` and ``[string] $OutputPath``. The script should write an arbitrary JSON "manifest" to the ``$OutputPath``.
-- ``Generate.ps1`` - This script generates the Dockerfile contents for the artifact. This should be the only output emitted from the command. Any output that is emitted from this command will be appended to the ``Dockerfile``. This script *must* support the input parameter: ``[string] $ManifestPath``. The script should read a JSON "manifest" to the ``$ManifestPath``.
+- ``Discover_<artifact>.ps1`` - This script should contain a function by the same name as the filename which will perform the discovery of the desired artifact and create a resulting manifest file. The function *must* accept the following input parameters: ``[string] $MountPath`` and ``[string] $OutputPath``. The script should write an arbitrary JSON "manifest" to the ``$OutputPath``.
+- ``Generate_<artifact>.ps1`` - This script should contain a function by the same name as the filename which will generate the Dockerfile contents for the artifact. This should be the only output emitted from the command. Any output that is emitted from this command will be appended to the ``Dockerfile``. This function *must* support the input parameter: ``[string] $ManifestPath``. The script should read a JSON "manifest" contained within the ``$ManifestPath``.
 
-You can add your own discovery artifacts to this project, by issuing a pull request. If you don't wish to share the artifacts publicly, you can simply place them into the module's ``.\Artifacts`` directory on each system that will perform image scans.
+It is also recommended that you also include within the Artifact directory a test script that validates the output from both the Discover and Generate functions for the artifact.
+
+You can also include any files within the Artifact directory that may be used to aid in discovering, generating or validating the output for the Artifact.
+
+You can add your own discovery artifacts to this project, by issuing a pull request. If you don't wish to share the artifacts publicly, you can simply place them into the module's ``.\Functions\Private\Artifacts`` directory on each system that will perform image scans.
 
 Supported Artifacts
 ===================
 
 This project currently supports discovery of the following artifacts:
 
+- Microsoft Windows Server Roles and Features
 - Microsoft Windows Add/Remove Programs (ARP)
-- Microsoft Windows Server Active Directory Domain Services (ADDS)
 - Microsoft Windows Server Domain Name Server (DNS)
 - Microsoft Windows Internet Information Services (IIS)
   - HTTP Handlers in IIS configuration

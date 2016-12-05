@@ -1,0 +1,16 @@
+version: 1.5.1.{build}
+build: off
+install:
+    - ps: |
+        Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+        Install-Module -Name Pester,PSScriptAnalyzer,PowerShellGet -Repository PSGallery -Force
+        
+        
+test_script:
+    - ps: |
+        $testResultsFile = ".\TestsResults.xml"
+        $tempModulePath = (Resolve-Path (join-path $PWD '..')).ProviderPath
+        $env:PSModulePath = "$env:PSModulePath;$tempModulePath"
+        $res = Invoke-Pester $env:APPVEYOR_BUILD_FOLDER\Tests\Image2Docker.Tests.ps1 -OutputFormat NUnitXml -OutputFile $testResultsFile -PassThru
+        (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $testResultsFile))
+        if ($res.FailedCount -gt 0) { throw "$($res.FailedCount) tests failed."} else {return}
