@@ -27,14 +27,17 @@ $Manifest = '{0}\{1}.json' -f $OutputPath, $ArtifactName
 ### Create a HashTable to store the results (this will get persisted to JSON)
 $ManifestResult = @{
     Name = 'MSMQ'
+    FeatureName = ''
     Status = ''
 }
 
-$MSMQ = Get-WindowsOptionalFeature -FeatureName MSMQ-Server -Path $MountPath 
-
-if ($MSMQ.State -eq 'Enabled') {
+$MsmqFeatures = Get-WindowsOptionalFeature -FeatureName MSMQ* -Path $MountPath 
+$EnabledFeatures = $MsmqFeatures.Where{$_.State -eq 'Enabled'}
+if ($EnabledFeatures.Count -gt 0) {
     Write-Verbose -Message 'MSMQ service is present'
     $ManifestResult.Status = 'Present'
+    $FeaturesToExport = $enabledFeatures | Sort-Object FeatureName | Select-Object -ExpandProperty FeatureName
+    $ManifestResult.FeatureName = $FeaturesToExport  -join ';'
 }
 else {
     Write-Verbose -Message 'MSMQ service was not found'

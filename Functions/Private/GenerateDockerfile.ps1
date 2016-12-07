@@ -34,21 +34,20 @@
 
     ### Get the Dockerfile template
     $Dockerfile = Get-Content -Raw -Path $DockerfileTemplate
-    
+    $Dockerfile = $Dockerfile.Trim() + [System.Environment]::NewLine
+    $Result = ''
+
     foreach ($item in $Artifact) {
-        If (! $ArtifactParam) {
+        if (! $ArtifactParam) {
             $Result = & "Generate_$item" -ManifestPath $ArtifactPath 
-            $Dockerfile += '{0}{1}' -f $Result, "`r`n"
         }
         else {
-            $Result = & "Generate_$item" -ManifestPath $ArtifactPath -ArtifactParam $ArtifactParam
-            $Dockerfile += '{0}{1}' -f $Result, "`r`n"
+            $Result = & "Generate_$item" -ManifestPath $ArtifactPath -ArtifactParam $ArtifactParam            
         }
-        
-}
+        $Dockerfile += '{0}{1}' -f [System.Environment]::NewLine, $Result.Trim()
+    }
 
     $DockerfilePath = '{0}\Dockerfile' -f $ArtifactPath
     Set-Content -Path $DockerfilePath -Value $Dockerfile
-
 }
 

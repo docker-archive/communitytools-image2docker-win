@@ -8,14 +8,21 @@ The path where the Windows image was mounted to.
 
 .PARAMETER OutputPath
 The filesystem path where the discovery manifest will be emitted.
+
+.PARAMETER ArtifactParam
+Optional - one or more Website names to include in the output.
 #>
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSShouldProcess",'')]
 [CmdletBinding()]
 param (
     [Parameter(Mandatory = $true)]
     [string] $MountPath,
+
     [Parameter(Mandatory = $true)]
-    [string] $OutputPath
+    [string] $OutputPath,
+
+    [Parameter(Mandatory = $false)]
+    [string[]] $ArtifactParam
 )
 
 $ArtifactName = Split-Path -Path $PSScriptRoot -Leaf
@@ -31,12 +38,12 @@ $ManifestResult = @{
 }
 
 $WindowsFeatures = Get-WindowsOptionalFeature -Path $MountPath
-
 $IIS = $WindowsFeatures.Where{$_.FeatureName -eq 'IIS-WebServer'}
-
 $EnabledFeatures = $WindowsFeatures.Where{$_.State -eq 'Enabled'}
-
-$FeaturesToExport = $EnabledFeatures.Where{$_.FeatureName -match 'IIS'} | Sort-Object FeatureName | Select-Object -ExpandProperty FeatureName
+$FeaturesToExport = $EnabledFeatures.Where{$_.FeatureName -match 'IIS'-or 
+                                           $_.FeatureName -match 'ASPNET' -or 
+                                           $_.FeatureName -match 'Asp-Net' -and 
+                                           $_.FeatureName -NotMatch 'Management'} | Sort-Object FeatureName | Select-Object -ExpandProperty FeatureName
 
 if ($IIS.State -eq 'Enabled') {
 
@@ -47,6 +54,9 @@ if ($IIS.State -eq 'Enabled') {
     $applicationDefaults = $AllSites.applicationDefaults
     $virtualDirectoryDefaults = $AllSites.virtualDirectoryDefaults
     $sites = $AllSites.site
+    if ($ArtifactParam) {
+        $sites = $sites.where{$_.name -in $ArtifactParam }
+    }
     $Websites = New-Object System.Collections.ArrayList
     ForEach ($site in $sites) {        
        $Websites.add([PSCustomObject]@{ 
@@ -91,10 +101,20 @@ if ($IIS.State -eq 'Enabled') {
     $ManifestResult.SiteDefaults = $siteDefaults
     $ManifestResult.ApplicationDefaults = $applicationDefaults
     $ManifestResult.VirtualDirectoryDefaults = $virtualDirectoryDefaults
+
+    if ($ManifestResult.FeatureName -like '*ASPNET*' -or $ManifestResult.FeatureName -like '*Asp-Net*'){
+        Write-Verbose -Message 'ASP.NET is present on the system'
+        $ManifestResult.AspNetStatus = 'Present'
+    }
+    else {
+        Write-Verbose -Message 'ASP.NET is NOT present on the system'
+        $ManifestResult.AspNetStatus = 'Absent'
+    }
 }
 else {
     Write-Verbose -Message 'IIS service is NOT present on the system'
     $ManifestResult.Status = 'Absent'
+    $ManifestResult.AspNetStatus = 'Absent'
 }
 
 ### Write the result to the manifest file
@@ -102,5 +122,3 @@ $ManifestResult | ConvertTo-Json -Depth 3 | Set-Content -Path $Manifest
 
 Write-Verbose -Message ('Finished discovering {0} artifact' -f $ArtifactName)
 }
-
-
