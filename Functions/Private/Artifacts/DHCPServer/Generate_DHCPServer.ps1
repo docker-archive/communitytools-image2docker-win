@@ -20,7 +20,12 @@ $Manifest = '{0}\{1}.json' -f $ManifestPath, $ArtifactName
 $Artifact = Get-Content -Path $Manifest -Raw | ConvertFrom-Json
 
 if ($Artifact.Status -eq 'Present') {
-    $Result = 'RUN powershell.exe -ExecutionPolicy Bypass -Command Enable-WindowsOptionalFeature -Online -FeatureName DHCPServer'
+    $Result = 
+'RUN Enable-WindowsOptionalFeature -Online -FeatureName DHCPServer
+
+EXPOSE 67 2535
+
+CMD /Wait-Service.ps1 -ServiceName DHCPServer -AllowServiceRestart'
 }
 
 Write-Output -InputObject $Result

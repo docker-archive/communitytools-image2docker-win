@@ -27,7 +27,7 @@
     You can use tab completion to find all of the supported artifacts that can be discovered.
 
     .PARAMETER ArtifactParam
-    This paramater is used in conjunction with the artifact paramater and currently is used when specifying a Single IIS Web App.
+    This paramater is used in conjunction with the artifact paramater and currently is used when specifying IIS Websites.
 
     Please see the examples for how to use this parameter.
 
@@ -59,10 +59,10 @@
     
     .EXAMPLE
 
-    ConvertTo-Dockerfile -ImagePath E:\VMVirtualHardDisks\WebServer.VHDX -OutputPath C:\Docker\IIS_SingleApp\ -MountPath C:\Image\ -Artifact IIS_SingleApp -ArtifactParam 'Default Web Site' -Force  -Verbose
+    ConvertTo-Dockerfile -ImagePath E:\VMVirtualHardDisks\WebServer.VHDX -OutputPath C:\Docker\IIS_SingleSite\ -MountPath C:\Image\ -Artifact IIS -ArtifactParam 'Default Web Site' -Force  -Verbose
 
     With this example we will be mounting a VHDX for a Virtual Machine called WebServer and the image will be mounted at the C:\Image\ location.
-    We have specified that we want to only return the IIS_SingleApp Artifact and for this we have provided the name of the WebApp that we want to return via the ArtifactParam Parameter, in this case we have specified that we want to return the 'Default Web Site' that is created when the IIS feature is activated on a new server.
+    We have specified that we want to only return the IIS Artifact and for this we have provided the name of the WebSite that we want to return via the ArtifactParam Parameter, in this case we have specified that we want to return the 'Default Web Site' that is created when the IIS feature is activated on a new server.
 
     We have also specified the Force Parameter which will remove any existing files and folders that are in the OutputPath directory and will reuse this directory for the output from this command.
 

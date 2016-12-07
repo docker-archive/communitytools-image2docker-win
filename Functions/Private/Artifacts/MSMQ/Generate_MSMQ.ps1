@@ -20,10 +20,12 @@ $Manifest = '{0}\{1}.json' -f $ManifestPath, $ArtifactName
 $Artifact = Get-Content -Path $Manifest -Raw | ConvertFrom-Json
 
 if ($Artifact.Status -eq 'Present') {
-    $Result = '
-RUN powershell.exe -ExecutionPolicy Bypass -Command Enable-WindowsOptionalFeature -Online -FeatureName MSMQ-Server
+    $Result = "RUN Enable-WindowsOptionalFeature -Online -FeatureName $($Artifact.FeatureName.Replace(';',',')) ;"
+    $Result += [System.Environment]::NewLine
+    $Result += 'EXPOSE 135 389 1801
 
-ENTRYPOINT ["ping", "8.8.8.8", "-t"]'
+CMD /Wait-Service.ps1 -ServiceName MSMQ -AllowServiceRestart'
+
     Write-Output -InputObject $Result
 }
 

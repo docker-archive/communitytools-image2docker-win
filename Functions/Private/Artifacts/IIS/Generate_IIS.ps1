@@ -5,13 +5,19 @@ Generates Dockerfile contents for Internet Information Services (IIS) feature
 
 .PARAMETER ManifestPath
 The filesystem path where the JSON manifests are stored.
+
+.PARAMETER ArtifactParam
+Optional - one or more Website names to include in the output.
 #>
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSShouldProcess",'')]
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments",'')]
 [CmdletBinding()]
 param (
     [Parameter(Mandatory = $true)]
-    [string] $ManifestPath
+    [string] $ManifestPath,
+
+    [Parameter(Mandatory = $false)]
+    [string[]] $ArtifactParam
 )
 
 $ArtifactName = Split-Path -Path $PSScriptRoot -Leaf
@@ -25,40 +31,51 @@ if ($Artifact.Status -eq 'Present') {
     Write-Verbose ('Copying {0} configuration files' -f $ArtifactName)
     $ConfigPath = $MountPath + "\" + "Windows\System32\inetsrv\config"
     Copy-Item $ConfigPath $ManifestPath -Recurse
-    $Result = "RUN Enable-WindowsOptionalFeature -Online -FeatureName $($Artifact.FeatureName.Replace(';',',')) ; ``"
-    $EndOfLine = "`r`n"
-    $Add = "`r`n"
-    $Expose = 'EXPOSE '
-    $ExposePorts = New-Object System.Collections.ArrayList
-    $ExposeText = ''
-    [int]$SiteCount = $Artifact.Websites.Count;
-    for ($i=0;$i -lt $SiteCount;$i++) {
-        Write-Verbose -Message ('Creating new website for {0} site' -f $Artifact.Websites[$i].Name)
-        $SitePath = $MountPath + $Artifact.Websites[$i].PhysicalPath
-        $Result += $EndOfLine
-        $Result += 'New-Item -Path {0} -ItemType directory -Force; `' -f $Artifact.Websites[$i].PhysicalPath
-        $Result += $EndOfLine
-        $Result += 'New-Website -Name ''{0}'' -PhysicalPath "{1}" -Port {2} -Force; `' -f ($Artifact.Websites[$i].Name -replace "'","''"), $Artifact.Websites[$i].PhysicalPath, $Artifact.Websites[$i].binding.bindingInformation.split(':')[-2] 
-        $ExposePorts.Add($Artifact.Websites[$i].binding.bindingInformation.split(':')[-2]) | Out-Null  
-        Write-Verbose -Message ('Copying files for {0} site' -f $Artifact.Websites[$i].Name)
-        Copy-Item $SitePath $ManifestPath -Recurse
-        $Add += "ADD {0} {1}`r`n" -f (Split-Path $Artifact.Websites[$i].PhysicalPath -Leaf),($Artifact.Websites[$i].PhysicalPath -Replace "\\","/") 
+
+    $ResultBuilder = New-Object System.Text.StringBuilder
+
+    Write-Verbose -Message ('Writing instruction to install IIS')
+    $null = $ResultBuilder.AppendLine('# Install Windows features for IIS')
+    $null = $ResultBuilder.Append('RUN Add-WindowsFeature Web-server')
+    if ($Artifact.AspNetStatus -eq 'Present') {
+        Write-Verbose -Message ('Writing instruction to install ASP.NET')
+        $null = $ResultBuilder.Append(', NET-Framework-45-ASPNET, Web-Asp-Net45')
     }
+    $null = $ResultBuilder.AppendLine('')
+    $null = $ResultBuilder.AppendLine("RUN Enable-WindowsOptionalFeature -Online -FeatureName $($Artifact.FeatureName.Replace(';',','))")
 
-$Result += $EndOfLine
-    ### Add IIS HTTP handlers to the Dockerfile
-    foreach ($HttpHandler in $Artifact.HttpHandlers) {
-        $Result += 'New-WebHandler -Name "{0}" -Path "{1}" -Verb "{2}" `' -f $HttpHandler.Name, $HttpHandler.Path, $HttpHandler.Verb
-        $Result += $EndOfLine   
-}
-    $Add += "ADD config Windows/System32/inetsrv/"
+    if ($Artifact.HttpHandlers.Count > 0) {
+        Write-Verbose -Message ('Writing instruction to add HTTP handlers')
+        $null = $ResultBuilder.Append('RUN ')
+        foreach ($HttpHandler in $Artifact.HttpHandlers) {
+             $null = $ResultBuilder.AppendLine('New-WebHandler -Name "{0}" -Path "{1}" -Verb "{2}" `' -f $HttpHandler.Name, $HttpHandler.Path, $HttpHandler.Verb)
+        }
+    }
+    $null = $ResultBuilder.AppendLine('')
 
-$ExposeText += $EndOfLine
-$ExposePorts.ForEach{$ExposeText += "$Expose $_ $EndOfLine" }    
-$endOutput = ($Result + $Add + $ExposeText)
-Write-Output $endOutput -NoEnumerate
-    
+    for ($i=0;$i -lt $Artifact.Websites.Count;$i++) {
+        $Site = $Artifact.Websites[$i]
+        Write-Verbose -Message ('Writing instruction to copy files for {0} site' -f  $Site.Name)
+        $null = $ResultBuilder.AppendLine("# Set up website: $($Site.Name)")
+        $SitePath = $MountPath + $Site.PhysicalPath
+        Copy-Item $SitePath $ManifestPath -Recurse
+        $copy = "COPY {0} {1}" -f (Split-Path $Site.PhysicalPath -Leaf),($Site.PhysicalPath -Replace "\\","/")
+        $null = $ResultBuilder.AppendLine($copy)
+
+        Write-Verbose -Message ('Writing instruction to create site {0}' -f  $Site.Name)
+        $newSite = 'RUN New-Website -Name ''{0}'' -PhysicalPath "C:{1}" -Port {2} -Force' -f ($Site.Name -replace "'","''"), $Site.PhysicalPath, $Site.binding.bindingInformation.split(':')[-2]
+        $null = $ResultBuilder.AppendLine($newSite)
+
+        Write-Verbose -Message ('Writing instruction to expose port for site {0}' -f  $Site.Name)
+        $null = $ResultBuilder.AppendLine("EXPOSE $($Site.binding.bindingInformation.split(':')[-2])")
+        $null = $ResultBuilder.AppendLine('')
+    }
+        
+    $null = $ResultBuilder.AppendLine('CMD /Wait-Service.ps1 -ServiceName W3SVC -AllowServiceRestart')
 }
+
+
+Write-Output $ResultBuilder.ToString() -NoEnumerate
 
 }
 
