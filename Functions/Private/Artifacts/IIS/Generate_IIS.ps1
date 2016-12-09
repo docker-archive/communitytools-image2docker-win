@@ -55,10 +55,12 @@ if ($Artifact.Status -eq 'Present') {
 
     for ($i=0;$i -lt $Artifact.Websites.Count;$i++) {
         $Site = $Artifact.Websites[$i]
-        Write-Verbose -Message ('Writing instruction to copy files for {0} site' -f  $Site.Name)
-        $null = $ResultBuilder.AppendLine("# Set up website: $($Site.Name)")
-        $SitePath = $MountPath + $Site.PhysicalPath
+        $SitePath = $Mount.Path + $Site.PhysicalPath
+        Write-Verbose -Message ('Copying website files from {0} to {1}' -f $SitePath, $ManifestPath)
         Copy-Item $SitePath $ManifestPath -Recurse
+
+        Write-Verbose -Message ('Writing instruction to copy files for {0} site' -f  $Site.Name)
+        $null = $ResultBuilder.AppendLine("# Set up website: $($Site.Name)")        
         $copy = "COPY {0} {1}" -f (Split-Path $Site.PhysicalPath -Leaf),($Site.PhysicalPath -Replace "\\","/")
         $null = $ResultBuilder.AppendLine($copy)
 

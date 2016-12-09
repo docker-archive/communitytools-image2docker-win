@@ -24,7 +24,7 @@
 
     )
 
-    Write-Verbose -Message 'Generating Dockerfile based on discovered artifacts'
+    Write-Verbose -Message ('Generating Dockerfile based on discovered artifacts in :{0}' -f $Mount.Path)
     ### Verify that the Dockerfile template is available
     $DockerfileTemplate = '{0}\Resources\Dockerfile-template' -f $ModulePath
 

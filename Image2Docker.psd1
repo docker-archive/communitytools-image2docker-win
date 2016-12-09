@@ -12,7 +12,7 @@
 RootModule = 'Image2Docker.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.5.1'
+ModuleVersion = '1.7.1'
 
 # Supported PSEditions
 ### NOTE: This module will not work with PowerShell Core.
@@ -105,7 +105,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        Tags = @('Docker', 'Migration','DockerFile','Image Capture')
+        Tags = @('Docker', 'Migration','Dockerfile','VHD', 'VM')
 
         # A URL to the license for this module.
         LicenseUri = 'http://www.apache.org/licenses/LICENSE-2.0'
