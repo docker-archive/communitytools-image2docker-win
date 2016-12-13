@@ -29,7 +29,7 @@ $Artifact = Get-Content -Path $Manifest -Raw | ConvertFrom-Json
 
 if ($Artifact.Status -eq 'Present') {
     Write-Verbose ('Copying {0} configuration files' -f $ArtifactName)
-    $ConfigPath = $MountPath + "\" + "Windows\System32\inetsrv\config"
+    $ConfigPath = $Mount.Path + "\" + "Windows\System32\inetsrv\config"
     Copy-Item $ConfigPath $ManifestPath -Recurse
 
     $ResultBuilder = New-Object System.Text.StringBuilder
