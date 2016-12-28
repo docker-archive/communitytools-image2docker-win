@@ -1,6 +1,8 @@
 Introduction
 =============
 
+`Image2Docker` is a PowerShell module which ports existing Windows application workloads from virtual machines to Docker images. It supports multiple application types, but the initial focus is on IIS. You can use `Image2Docker` to extract ASP.NET websites from a VM, so you can run them in a Docker container with no application changes.
+
 This project aims to provide a framework to simplify the creation of Dockerfiles for Microsoft Windows Server Hyper-V Container 
 images, based upon analysis of existing WIM or VHDX image files.
 
@@ -13,7 +15,9 @@ There are two types of container formats supported on the Microsoft Windows plat
 Prerequisites
 =============
 
-Windows 10 with the Anniversary Update is required on the system that is using this module. You may also be able to use Windows Server 2016 to run this module. 
+Windows Server 2016, or Windows 10 with the Anniversary Update is required on the system that is using this module. 
+
+The module generates a [Dockerfile](https://docs.docker.com/engine/reference/builder/) which you can build into a Docker image. The system running the `ConvertTo-Dockerfile` command does not need Docker installed, but you will need [Docker setup on Windows](https://github.com/docker/labs/blob/master/windows/windows-containers/Setup.md) to build images and run containers.
 
 Installation
 =============
@@ -38,7 +42,7 @@ To perform a scan of a valid VHDX or WIM image file, simply call the ``ConvertTo
 To improve performance of the image scan, you may also specify the artifacts that will be discovered within the image.
 This avoids the performance hit by preventing scanning for artifacts that are intentionally excluded from the scanning process.
 To discover a list of supported artifacts, use the ``Get-WindowsArtifact`` command. This command will emit an array of supported artifacts.
-Once you have identified one or more artifacts that you would like to scan for, simply add the ``
+Once you have identified one or more artifacts that you would like to scan for, simply add the ``Artifact`` parameter.
 
 Example:  
 
@@ -49,6 +53,9 @@ Example:
 
   ### Perform scan and Dockerfile generation
   ConvertTo-Dockerfile -ImagePath c:\docker\myimage.vhdx -Artifact IIS, Apache
+
+  ### Extract a single wesbite from an IIS virtual machine
+  ConvertTo-Dockerfile -ImagePath c:\vms\iis.vhd -Artifact IIS -ArtifactParam aspnet-webapi
 
 Artifacts
 =============
@@ -76,6 +83,7 @@ This project currently supports discovery of the following artifacts:
 - Microsoft Windows Internet Information Services (IIS)
   - HTTP Handlers in IIS configuration
   - IIS Websites and filesystem paths
+  - ASP.NET web applications
 - Microsoft SQL Server instances
 - Apache Web Server
 
