@@ -24,15 +24,16 @@ $ArtifactName = Split-Path -Path $PSScriptRoot -Leaf
 
 Write-Verbose -Message ('Generating result for {0} component' -f (Split-Path -Path $PSScriptRoot -Leaf))
 $Manifest = '{0}\{1}.json' -f $ManifestPath, $ArtifactName 
+$ResultBuilder = New-Object System.Text.StringBuilder
 
 $Artifact = Get-Content -Path $Manifest -Raw | ConvertFrom-Json
 
 if ($Artifact.Status -eq 'Present') {
     Write-Verbose ('Copying {0} configuration files' -f $ArtifactName)
     $ConfigPath = $Mount.Path + "\" + "Windows\System32\inetsrv\config"
-    Copy-Item $ConfigPath $ManifestPath -Recurse
-
-    $ResultBuilder = New-Object System.Text.StringBuilder
+    if (Test-Path -Path $ConfigPath) {
+        Copy-Item $ConfigPath $ManifestPath -Recurse    
+    }
 
     Write-Verbose -Message ('Writing instruction to install IIS')
     $null = $ResultBuilder.AppendLine('# Install Windows features for IIS')
@@ -42,7 +43,11 @@ if ($Artifact.Status -eq 'Present') {
         $null = $ResultBuilder.Append(', NET-Framework-45-ASPNET, Web-Asp-Net45')
     }
     $null = $ResultBuilder.AppendLine('')
-    $null = $ResultBuilder.AppendLine("RUN Enable-WindowsOptionalFeature -Online -FeatureName $($Artifact.FeatureName.Replace(';',','))")
+
+    if ($Artifact.FeatureName.length -gt 0) {
+        $null = $ResultBuilder.AppendLine("RUN Enable-WindowsOptionalFeature -Online -FeatureName $($Artifact.FeatureName.Replace(';',','))")
+        $null = $ResultBuilder.AppendLine('')
+    }
 
     if ($Artifact.HttpHandlers.Count > 0) {
         Write-Verbose -Message ('Writing instruction to add HTTP handlers')
@@ -50,9 +55,13 @@ if ($Artifact.Status -eq 'Present') {
         foreach ($HttpHandler in $Artifact.HttpHandlers) {
              $null = $ResultBuilder.AppendLine('New-WebHandler -Name "{0}" -Path "{1}" -Verb "{2}" `' -f $HttpHandler.Name, $HttpHandler.Path, $HttpHandler.Verb)
         }
-    }
-    $null = $ResultBuilder.AppendLine('')
+        $null = $ResultBuilder.AppendLine('')
+    }    
 
+    $null = $ResultBuilder.AppendLine('')
+    $null = $ResultBuilder.AppendLine("RUN Remove-Website 'Default Web Site'")
+
+    $null = $ResultBuilder.AppendLine('')
     for ($i=0;$i -lt $Artifact.Websites.Count;$i++) {
         $Site = $Artifact.Websites[$i]
         $SitePath = $Mount.Path + $Site.PhysicalPath
