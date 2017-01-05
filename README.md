@@ -7,7 +7,7 @@
 This project aims to provide a framework to simplify the creation of Dockerfiles for Windows Docker
 images, based upon analysis of existing WIM or VHDX image files.
 
-Microsoft Windows 10 and Windows Server  2016 introduce new capabilities for containerizing applications. 
+Microsoft Windows 10 and Windows Server 2016 introduce new capabilities for containerizing applications. 
 There are two types of container formats supported on the Microsoft Windows platform:
 
 - **Hyper-V Containers** - Containers with a dedicated kernel and stronger isolation from other containers

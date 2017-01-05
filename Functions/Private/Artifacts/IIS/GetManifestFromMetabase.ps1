@@ -21,13 +21,17 @@ param (
     [Parameter(Mandatory = $true)]
     [string] $OutputPath,
 
+    [Parameter(Mandatory = $true)]
+    [string] $ImageWindowsVersion,
+
     [Parameter(Mandatory = $false)]
     [string[]] $ArtifactParam
 )
 
 $ManifestResult = @{
     FeatureName = ''
-    Status = ''
+    Status = 'Absent'
+    AspNetStatus = 'Absent'
 }
 
 $MetabasePath = "$MountPath\Windows\System32\inetsrv\MetaBase.xml"
@@ -87,13 +91,6 @@ if (Test-Path -Path $MetabasePath) {
     if ($AspNetInstalled -eq $true){        
         $ManifestResult.AspNetStatus = 'Present'
     }
-    else {        
-        $ManifestResult.AspNetStatus = 'Absent'
-    }
-}
-else {    
-    $ManifestResult.Status = 'Absent'
-    $ManifestResult.AspNetStatus = 'Absent'
 }
 
 return $ManifestResult 

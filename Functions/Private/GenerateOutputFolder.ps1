@@ -29,8 +29,10 @@
 
 
     if ($PSBoundParameters.Keys.Contains('Force')) {
-        Write-Verbose -Message "User specified the Force Parameter. Removing existing items from $Path"
-        Remove-Item -Path $Path -Recurse -Force
+        if (Test-Path -Path $Path) {
+            Write-Verbose -Message "User specified the Force Parameter. Removing existing items from $Path"
+            Remove-Item -Path $Path -Recurse -Force
+        }
         
         $null = New-Item -Path $Path -ItemType Directory
         Write-Verbose -Message "User specified path $Path has been created"

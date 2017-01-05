@@ -14,8 +14,15 @@ The filesystem path where the discovery manifest will be emitted.
 param (
     [Parameter(Mandatory = $true)]
     [string] $MountPath,
+
     [Parameter(Mandatory = $true)]
-    [string] $OutputPath
+    [string] $OutputPath,
+
+    [Parameter(Mandatory = $true)]
+    [string] $ImageWindowsVersion,
+
+    [Parameter(Mandatory = $false)]
+    [string[]] $ArtifactParam
 )
 
 $ArtifactName = Split-Path -Path $PSScriptRoot -Leaf
@@ -33,7 +40,7 @@ $RegistryMount = @{
     ArgumentList = 'load "HKLM\{0}" "{1}\Windows\System32\Config\SOFTWARE"' -f $TempKey, $MountPath
     Wait = $true
 }
-Start-Process @RegistryMount
+Start-Process @RegistryMount -WindowStyle Hidden
 Write-Verbose -Message ('Finished loading the SOFTWARE registry hive from {0}' -f $MountPath)
 
 ### Define empty array to hold installed software items
@@ -60,7 +67,7 @@ $RegistryUnmount = @{
     ArgumentList = 'unload "HKLM\{0}"' -f $TempKey
     Wait = $true
 }
-Start-Process @RegistryUnmount
+Start-Process @RegistryUnmount -WindowStyle Hidden
 Write-Verbose -Message 'Finished unmounting the registry hive'
 
 ### Write out the discovery results to the manifest file

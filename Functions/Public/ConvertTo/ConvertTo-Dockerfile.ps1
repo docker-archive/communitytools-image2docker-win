@@ -118,16 +118,21 @@
         catch {
             throw 'Fatal error: couldn''t mount image file: {0}' -f $PSItem
         }
+    
+    ### Get the Windows version in the image, returns Major.Minor - e.g. 6.2 is Server 2012
+    ### https://en.wikipedia.org/wiki/List_of_Microsoft_Windows_versions
+    $info = Get-WindowsImage -Index 1 -ImagePath $ImagePath
+    $ImageWindowsVersion = "$($info.MajorVersion).$($info.MinorVersion)"
 
     ### Perform artifact discovery
     if (!$PSBoundParameters.Keys.Contains('Artifact')) {
         $Artifact = Get-WindowsArtifact
     }
     if (!$PSBoundParameters.Keys.Contains('ArtifactParam')) {
-         DiscoverArtifacts -Artifact $Artifact -OutputPath $OutputPath
+         DiscoverArtifacts -Artifact $Artifact -OutputPath $OutputPath -ImageWindowsVersion $ImageWindowsVersion
     }
     else {
-        DiscoverArtifacts -Artifact $Artifact -OutputPath $OutputPath -ArtifactParam $ArtifactParam
+        DiscoverArtifacts -Artifact $Artifact -OutputPath $OutputPath -ImageWindowsVersion $ImageWindowsVersion -ArtifactParam $ArtifactParam
     }
 
     ### Generate Dockerfile

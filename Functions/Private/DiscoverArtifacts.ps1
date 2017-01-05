@@ -21,6 +21,9 @@
         [Parameter(Mandatory = $true)]
         [string] $OutputPath,
 
+        [Parameter(Mandatory = $true)]
+        [string] $ImageWindowsVersion,
+
         [Parameter(Mandatory = $false)]
         [string[]] $ArtifactParam
     )
@@ -29,12 +32,12 @@
     
     if (!$ArtifactParam) {
         foreach ($item in $Artifact) {
-        & "Discover_$item" -OutputPath $OutputPath -MountPath $Mount.Path
+        & "Discover_$item" -OutputPath $OutputPath -MountPath $Mount.Path -ImageWindowsVersion $ImageWindowsVersion
         }
     }
     else {
         foreach ($item in $Artifact) {
-        & "Discover_$item" -OutputPath $OutputPath -MountPath $Mount.Path -ArtifactParam $ArtifactParam
+        & "Discover_$item" -OutputPath $OutputPath -MountPath $Mount.Path -ImageWindowsVersion $ImageWindowsVersion -ArtifactParam $ArtifactParam
         }
     }
 

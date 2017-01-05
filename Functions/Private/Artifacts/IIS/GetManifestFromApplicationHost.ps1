@@ -21,26 +21,24 @@ param (
     [Parameter(Mandatory = $true)]
     [string] $OutputPath,
 
+    [Parameter(Mandatory = $true)]
+    [string] $ImageWindowsVersion,
+
     [Parameter(Mandatory = $false)]
     [string[]] $ArtifactParam
 )
 
 $ManifestResult = @{
     FeatureName = ''
-    Status = ''
+    Status = 'Absent'
+    AspNetStatus = 'Absent'
 }
 
-$WindowsFeatures = Get-WindowsOptionalFeature -Path $MountPath
-$IIS = $WindowsFeatures.Where{$_.FeatureName -eq 'IIS-WebServer'}
-$EnabledFeatures = $WindowsFeatures.Where{$_.State -eq 'Enabled'}
-$FeaturesToExport = $EnabledFeatures.Where{$_.FeatureName -match 'IIS'-or 
-                                           $_.FeatureName -match 'ASPNET' -or 
-                                           $_.FeatureName -match 'Asp-Net' -and 
-                                           $_.FeatureName -NotMatch 'Management'} | Sort-Object FeatureName | Select-Object -ExpandProperty FeatureName 
+$ApplicationHostPath = "$MountPath\Windows\System32\inetsrv\config\applicationHost.config"
 
-if ($IIS.State -eq 'Enabled') {
+if (Test-Path -Path $ApplicationHostPath) {
 
-    $IISConfig = [xml](Get-Content -Path $MountPath\Windows\System32\inetsrv\config\applicationHost.config)
+    $IISConfig = [xml](Get-Content -Path $ApplicationHostPath)
     
     $AllSites = $IISConfig | Select-Xml -XPath "//sites" | Select-Object -ExpandProperty Node
     $siteDefaults = $AllSites.siteDefaults
@@ -74,19 +72,38 @@ if ($IIS.State -eq 'Enabled') {
 
     $DefaultHandlers = [xml](Get-Content $PSScriptRoot\DefaultHandlers.xml) | Select-Xml -XPath "//handlers" | Select-Object -ExpandProperty Node | Select-Object -ExpandProperty add
     $handlers = New-object System.Collections.ArrayList
-        
+
+    $AspNetInstalled = $false    
     foreach ($Handler in $HandlerList) {
         if (-not $DefaultHandlers.name -match $handler.Name) {
 
-     $handlers.Add([PSCustomObject]@{
-            Name = $Handler.name
-            Path = $Handler.path
-            Verb = $Handler.verb
-            }) | Out-Null
+            $handlers.Add([PSCustomObject]@{
+                Name = $Handler.name
+                Path = $Handler.path
+                Verb = $Handler.verb
+                }) | Out-Null
+        }
+        if ($Handler.path.Contains('.aspx')) {
+            $AspNetInstalled = $true
+        }
     }
-}
-    Write-Verbose -Message 'IIS service is present on the system'
-    $ManifestResult.FeatureName = $FeaturesToExport  -join ';'    
+
+    #feature selection not valid for 2008 and below:
+    if ([decimal]$ImageWindowsVersion -gt 6.1) {
+            $WindowsFeatures = Get-WindowsOptionalFeature -Path $Mount.Path
+            $IIS = $WindowsFeatures.Where{$_.FeatureName -eq 'IIS-WebServer'}
+            $EnabledFeatures = $WindowsFeatures.Where{$_.State -eq 'Enabled'}
+            $FeaturesToExport = $EnabledFeatures.Where{$_.FeatureName -match 'IIS'-or 
+                                                    $_.FeatureName -match 'ASPNET' -or 
+                                                    $_.FeatureName -match 'Asp-Net' -and 
+                                                    $_.FeatureName -NotMatch 'Management'} | Sort-Object FeatureName | Select-Object -ExpandProperty FeatureName 
+        
+            $ManifestResult.FeatureName = $FeaturesToExport  -join ';'  
+            if ($ManifestResult.FeatureName -like '*ASPNET*' -or $ManifestResult.FeatureName -like '*Asp-Net*'){
+            $AspNetInstalled = $true
+            }        
+    }
+      
     $ManifestResult.Status = 'Present'
     $ManifestResult.Websites = $Websites
     $ManifestResult.ApplicationPools = $appPools
@@ -95,16 +112,9 @@ if ($IIS.State -eq 'Enabled') {
     $ManifestResult.ApplicationDefaults = $applicationDefaults
     $ManifestResult.VirtualDirectoryDefaults = $virtualDirectoryDefaults
 
-    if ($ManifestResult.FeatureName -like '*ASPNET*' -or $ManifestResult.FeatureName -like '*Asp-Net*'){
+    if ($AspNetInstalled -eq $true){        
         $ManifestResult.AspNetStatus = 'Present'
-    }
-    else {
-        $ManifestResult.AspNetStatus = 'Absent'
-    }
-}
-else {
-    $ManifestResult.Status = 'Absent'
-    $ManifestResult.AspNetStatus = 'Absent'
+    } 
 }
 
 return $ManifestResult 
