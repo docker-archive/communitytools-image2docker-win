@@ -14,8 +14,15 @@ The filesystem path where the discovery manifest will be emitted.
 param (
     [Parameter(Mandatory = $true)]
     [string] $MountPath,
+
     [Parameter(Mandatory = $true)]
-    [string] $OutputPath
+    [string] $OutputPath,
+
+    [Parameter(Mandatory = $true)]
+    [string] $ImageWindowsVersion,
+
+    [Parameter(Mandatory = $false)]
+    [string[]] $ArtifactParam
 )
 
 $ArtifactName = Split-Path -Path $PSScriptRoot -Leaf

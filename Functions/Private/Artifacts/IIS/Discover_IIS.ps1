@@ -21,6 +21,9 @@ param (
     [Parameter(Mandatory = $true)]
     [string] $OutputPath,
 
+    [Parameter(Mandatory = $true)]
+    [string] $ImageWindowsVersion,
+
     [Parameter(Mandatory = $false)]
     [string[]] $ArtifactParam
 )
@@ -37,12 +40,15 @@ $ManifestResult = @{
     Status = ''
 }
 
-try {
-    $WindowsFeatures = Get-WindowsOptionalFeature -Path $MountPath
-    $ManifestResult = GetManifestFromApplicationHost -OutputPath $OutputPath -MountPath $Mount.Path -ArtifactParam $ArtifactParam
+# Windows 5.2 -> Server 2003; use MetaBase discovery for IIS 6:
+if ($ImageWindowsVersion -eq '5.2') {
+    Write-Verbose -Message "Checking IIS MetaBase config for Windows Version: $ImageWindowsVersion"  
+    $ManifestResult = GetManifestFromMetabase -OutputPath $OutputPath -MountPath $Mount.Path -ImageWindowsVersion $ImageWindowsVersion -ArtifactParam $ArtifactParam
 }
-catch {    
-    $ManifestResult = GetManifestFromMetabase -OutputPath $OutputPath -MountPath $Mount.Path -ArtifactParam $ArtifactParam
+else {
+    # Use Application Host discovery for IIS 7 onwards:
+    Write-Verbose -Message "Checking IIS ApplicationHost config for Windows Version: $ImageWindowsVersion" 
+    $ManifestResult = GetManifestFromApplicationHost -OutputPath $OutputPath -MountPath $Mount.Path -ImageWindowsVersion $ImageWindowsVersion -ArtifactParam $ArtifactParam
 }
 
 if ($ManifestResult.Status -eq 'Present'){

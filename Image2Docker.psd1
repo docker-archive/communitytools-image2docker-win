@@ -12,7 +12,7 @@
 RootModule = 'Image2Docker.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.7.3'
+ModuleVersion = '1.7.4'
 
 # Supported PSEditions
 ### NOTE: This module will not work with PowerShell Core.
@@ -31,10 +31,10 @@ Author = 'Docker'
 CompanyName = 'Docker Inc.'
 
 # Copyright statement for this module
-Copyright = '(c) 2016 Docker Inc. All rights reserved.'
+Copyright = '(c) 2017 Docker Inc. All rights reserved.'
 
 # Description of the functionality provided by this module
-Description = 'Performs inspection of artifacts in a valid Windows Server 2012 or Windows Server 2012 R2 WIM or VHDX image and emit a Dockerfile to build the image with.
+Description = 'Performs inspection of artifacts in a Windows Server 2003, 2008, 2012 or 2016 VM image - in WIM, VHD or VHDX format. Emits a Dockerfile you can use to build a Docker image from the VM.
 This PowerShell module requires Windows Server 2012 with PowerShell 5.0, or later, as it has a dependency on the ServerManager PowerShell module.
 This module can also be used on Windows 10, as long as the Windows Server 2016 Remote Server Administration Tools (RSAT) are installed, and the ServerManager PowerShell module is present.'
 
