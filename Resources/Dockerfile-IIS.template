@@ -1,0 +1,6 @@
+# escape=`
+FROM microsoft/iis:windowsservercore-10.0.14393.693
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop';"]
+
+RUN Remove-Website 'Default Web Site'; `
+    If (Test-Path 'C:\inetpub\wwwroot'){ Remove-Item -Path 'C:\inetpub\wwwroot' }

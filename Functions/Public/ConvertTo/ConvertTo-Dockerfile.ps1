@@ -81,7 +81,7 @@
         [Parameter(Mandatory = $false)]
         [string] $MountPath,
 
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $true)]
         [string[]] $Artifact,
 
         [Parameter(Mandatory = $false)]

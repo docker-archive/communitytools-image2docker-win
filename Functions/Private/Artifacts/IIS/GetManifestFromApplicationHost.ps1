@@ -32,6 +32,7 @@ $ManifestResult = @{
     FeatureName = ''
     Status = 'Absent'
     AspNetStatus = 'Absent'
+    AspNet35Status = 'Absent'
 }
 
 $ApplicationHostPath = "$MountPath\Windows\System32\inetsrv\config\applicationHost.config"
@@ -48,16 +49,41 @@ if (Test-Path -Path $ApplicationHostPath) {
     if ($ArtifactParam) {
         $sites = $sites.where{$_.name -in $ArtifactParam }
     }
+
     $Websites = New-Object System.Collections.ArrayList
-    ForEach ($site in $sites) {        
-       $Websites.add([PSCustomObject]@{ 
+    ForEach ($site in $sites) { 
+
+        $applications = New-Object System.Collections.ArrayList
+        ForEach ($application in $site.application) {
+            $virtualDirectories =  New-Object System.Collections.ArrayList
+            ForEach ($virtualDirectory in $application.virtualDirectory){
+                $virtualDirectories.add([PSCustomObject]@{ 
+                    Path = $virtualDirectory.path;
+                    PhysicalPath = $virtualDirectory.physicalPath.replace('%SystemDrive%\','\').replace('C:\','\').Replace('c:\','\');
+                }) | Out-Null
+            }
+            $applications.add([PSCustomObject]@{ 
+                Path = $application.path;
+                ApplicationPool = $application.ApplicationPool;
+                VirtualDirectories = $virtualDirectories;
+            }) | Out-Null
+        }
+
+        $bindings = New-Object System.Collections.ArrayList
+        ForEach ($binding in $site.bindings.binding) {
+            $bindings.add([PSCustomObject]@{ 
+                Protocol = $binding.Protocol;
+                BindingInformation = $binding.bindingInformation
+            }) | Out-Null
+        }
+
+        $Websites.add([PSCustomObject]@{ 
                     Name = $site.name;
                     ID = $site.id;
-                    ApplicationPool = $site.application.ApplicationPool
-                    PhysicalPath = $site.application.virtualDirectory.physicalPath.replace('%SystemDrive%\','\').replace('C:\','\').Replace('c:\','\');
-                    Binding = [PSCustomObject]@{ Protocol = $site.bindings.binding.Protocol;
-                                                 BindingInformation = $site.bindings.binding.bindingInformation } }) | Out-Null
-        }
+                    Applications = $applications;
+                    Bindings = $bindings;                    
+            }) | Out-Null
+    }
 
     $AllApplicationPools = $IISConfig | Select-Xml -XPath "//applicationPools" | Select-Object -ExpandProperty Node
     $ApplicationPools = $AllApplicationPools.add.name
@@ -115,6 +141,9 @@ if (Test-Path -Path $ApplicationHostPath) {
     if ($AspNetInstalled -eq $true){        
         $ManifestResult.AspNetStatus = 'Present'
     } 
+
+    #TODO 
+    $ManifestResult.AspNet35Status = 'Absent'
 }
 
 return $ManifestResult 

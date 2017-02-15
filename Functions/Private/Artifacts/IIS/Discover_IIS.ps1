@@ -65,7 +65,7 @@ else {
 }
 
 ### Write the result to the manifest file
-$ManifestResult | ConvertTo-Json -Depth 3 | Set-Content -Path $Manifest
+$ManifestResult | ConvertTo-Json -Depth 6 | Set-Content -Path $Manifest
 
 Write-Verbose -Message ('Finished discovering {0} artifact' -f $ArtifactName)
 }

@@ -25,29 +25,15 @@
     )
 
     Write-Verbose -Message ('Generating Dockerfile based on discovered artifacts in :{0}' -f $Mount.Path)
-    ### Verify that the Dockerfile template is available
-    $DockerfileTemplate = '{0}\Resources\Dockerfile-template' -f $ModulePath
+    $Dockerfile = ''
 
-    if (!(Test-Path -Path $DockerfileTemplate)) {
-        throw 'Couldn''t find the Dockerfile template. Please make sure this exists under: {0}' -f $DockerfileTemplate
-    }
-
-    ### Get the Dockerfile template
-    $Dockerfile = Get-Content -Raw -Path $DockerfileTemplate
-    $Dockerfile = $Dockerfile.Trim() + [System.Environment]::NewLine
-    $Result = ''
-
-    foreach ($item in $Artifact) {
         if (! $ArtifactParam) {
-            $Result = & "Generate_$item" -ManifestPath $ArtifactPath 
+            $Dockerfile = & "Generate_$Artifact" -ManifestPath $ArtifactPath 
         }
         else {
-            $Result = & "Generate_$item" -ManifestPath $ArtifactPath -ArtifactParam $ArtifactParam            
+            $Dockerfile = & "Generate_$Artifact" -ManifestPath $ArtifactPath -ArtifactParam $ArtifactParam            
         }
-        $Dockerfile += '{0}{1}' -f [System.Environment]::NewLine, $Result.Trim()
-    }
 
     $DockerfilePath = '{0}\Dockerfile' -f $ArtifactPath
-    Set-Content -Path $DockerfilePath -Value $Dockerfile
+    Set-Content -Path $DockerfilePath -Value $Dockerfile.Trim()
 }
-
