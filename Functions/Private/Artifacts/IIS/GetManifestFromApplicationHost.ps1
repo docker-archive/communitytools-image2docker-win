@@ -46,9 +46,6 @@ if (Test-Path -Path $ApplicationHostPath) {
     $applicationDefaults = $AllSites.applicationDefaults
     $virtualDirectoryDefaults = $AllSites.virtualDirectoryDefaults
     $sites = $AllSites.site
-    if ($ArtifactParam) {
-        $sites = $sites.where{$_.name -in $ArtifactParam }
-    }
 
     $Websites = New-Object System.Collections.ArrayList
     ForEach ($site in $sites) { 

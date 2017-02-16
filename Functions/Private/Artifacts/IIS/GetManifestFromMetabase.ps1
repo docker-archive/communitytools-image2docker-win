@@ -61,9 +61,6 @@ if (Test-Path -Path $MetabasePath) {
     Write-Verbose -Message "Found: $($Sites.Count) sites"
     
     $apps = $IISConfig.configuration.MBProperty.IIsWebVirtualDir
-    if ($ArtifactParam) {
-        $apps = $apps.where{$_.AppFriendlyName -in $ArtifactParam }
-    }
 
     $Websites = New-Object System.Collections.ArrayList
     ForEach ($app in $apps) { 
@@ -76,10 +73,10 @@ if (Test-Path -Path $MetabasePath) {
                 ApplicationPool = $app.AppPoolId;
                 PhysicalPath = $app.Path.replace('%SystemDrive%\','\').replace('C:\','\').Replace('c:\','\');
                 Binding = [PSCustomObject]@{ Protocol = 'http'; #TODO - discover protocol from metabase
-                BindingInformation = "*" + $site.Bindings } }) | Out-Null
-            }
+                BindingInformation = "*" + $site.Bindings } 
+            }) | Out-Null
         }
-    
+    }    
 
     $Websites = New-Object System.Collections.ArrayList
     $iis = $IISConfig.configuration.MBProperty
