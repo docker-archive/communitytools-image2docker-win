@@ -36,16 +36,35 @@ function IncludePath([string[]] $pathParts) {
     return $false
 }
 
+function ProcessDirectory([System.Text.StringBuilder] $DirectoryBuilder, 
+                          [System.Text.StringBuilder] $CopyBuilder,
+                          [string] $SourcePath,
+                          [bool] $FirstDirectory) {
+    Write-Verbose "Processing source directory: $SourcePath"                              
+    if ($FirstDirectory -eq $true) {
+        $newPath = "RUN New-Item -Path 'C:$SourcePath' -Type Directory -Force; ``" 
+    }
+    else {
+        $newPath = "    New-Item -Path 'C:$SourcePath' -Type Directory -Force; ``" 
+    }
+    $null = $DirectoryBuilder.AppendLine($newPath)
+
+    $copy = 'COPY ["{0}", "{1}"]' -f (Split-Path $SourcePath -Leaf),($sourcePath -Replace "\\","/")
+    $null = $CopyBuilder.AppendLine($copy)
+
+    $fullSourcePath = $Mount.Path + $SourcePath
+    Copy-Item $fullSourcePath $ManifestPath -Recurse -Force
+}
+
 $ArtifactName = Split-Path -Path $PSScriptRoot -Leaf
 
 Write-Verbose -Message ('Generating result for {0} component' -f (Split-Path -Path $PSScriptRoot -Leaf))
 $Manifest = '{0}\{1}.json' -f $ManifestPath, $ArtifactName 
-$ResultBuilder = New-Object System.Text.StringBuilder
+$ResultBuilder = GetDockerfileBuilder
 
 $Artifact = Get-Content -Path $Manifest -Raw | ConvertFrom-Json
 
-if ($Artifact.Status -eq 'Present') {
-    $DockerfileTemplate = 'Dockerfile-IIS.template'
+if ($Artifact.Status -eq 'Present') {    
     Write-Verbose ('Copying {0} configuration files' -f $ArtifactName)
     $ConfigPath = $Mount.Path + "\" + "Windows\System32\inetsrv\config"
     if (Test-Path -Path $ConfigPath) {
@@ -57,8 +76,7 @@ if ($Artifact.Status -eq 'Present') {
     if ($Artifact.AspNet35Status -eq 'Present') {
         $DockerfileTemplate = 'Dockerfile-ASPNET-35.template'
     }
-    $Dockerfile = Get-Content -Raw -Path "$ModulePath\Resources\$DockerfileTemplate"
-    $null = $ResultBuilder.AppendLine($Dockerfile.Trim())
+    $ResultBuilder = GetDockerfileBuilder($DockerfileTemplate)
 
     if ($Artifact.FeatureName.length -gt 0) {
         $null = $ResultBuilder.AppendLine("RUN Enable-WindowsOptionalFeature -Online -FeatureName $($Artifact.FeatureName.Replace(';',','))")
@@ -99,19 +117,16 @@ if ($Artifact.Status -eq 'Present') {
 
         Write-Verbose -Message ('Writing instruction to create site {0}' -f  $Site.Name)
 
-        # create empty paths for all the site directories
+        # process the main site path
         $DirectoryBuilder = New-Object System.Text.StringBuilder
         $CopyBuilder = New-Object System.Text.StringBuilder
-        $newPath = "RUN New-Item -Path 'C:$($mainVirtualDir.PhysicalPath)' -Type Directory; ``" 
-        $null = $DirectoryBuilder.AppendLine($newPath) 
+        ProcessDirectory -DirectoryBuilder $DirectoryBuilder -CopyBuilder $CopyBuilder -SourcePath $mainVirtualDir.PhysicalPath -FirstDirectory $true
 
         # creating the website creates the default app & vdir underneath it
         $sourcePath = $mainVirtualDir.PhysicalPath
         $newSite = "RUN New-Website -Name '$($Site.Name)' -PhysicalPath 'C:$sourcePath' -Port $($mainBinding.BindingInformation.split(':')[-2]) -Force; ``"
         $AppBuilder = New-Object System.Text.StringBuilder
         $null = $AppBuilder.AppendLine($newSite)
-        $copy = "COPY {0} {1}" -f (Split-Path $sourcePath -Leaf),($sourcePath -Replace "\\","/")
-        $null = $CopyBuilder.AppendLine($copy)
 
         # now create additional apps and vdirs
         ForEach ($application in $Site.Applications) {
@@ -129,12 +144,8 @@ if ($Artifact.Status -eq 'Present') {
                 $sourcePath = $appVirtualDir.PhysicalPath
                 $newApp = "    New-WebApplication -Name '$appName' -Site '$($Site.Name)' -PhysicalPath 'C:$sourcePath' -Force; ``"
                 $null = $AppBuilder.AppendLine($newApp)                
-                if ($sourcePath -ne $mainVirtualDir.PhysicalPath) {           
-                    $newPath = "    New-Item -Path 'C:$sourcePath' -Type Directory -Force; ``" 
-                    $null = $DirectoryBuilder.AppendLine($newPath)
-
-                    $copy = "COPY {0} {1}" -f (Split-Path $sourcePath -Leaf),($sourcePath -Replace "\\","/")
-                    $null = $CopyBuilder.AppendLine($copy)
+                if ($sourcePath -ne $mainVirtualDir.PhysicalPath) {
+                    ProcessDirectory -DirectoryBuilder $DirectoryBuilder -CopyBuilder $CopyBuilder -SourcePath $sourcePath                  
                 }
             }
 
@@ -160,11 +171,7 @@ if ($Artifact.Status -eq 'Present') {
                 $null = $AppBuilder.AppendLine($newDir)
 
                 if ($sourcePath -ne $mainVirtualDir.PhysicalPath) {           
-                    $newPath = "    New-Item -Path 'C:$sourcePath' -Type Directory -Force; ``" 
-                    $null = $DirectoryBuilder.AppendLine($newPath)
-
-                    $copy = "COPY {0} {1}" -f (Split-Path $sourcePath -Leaf),($sourcePath -Replace "\\","/")
-                    $null = $CopyBuilder.AppendLine($copy)
+                    ProcessDirectory -DirectoryBuilder $DirectoryBuilder -CopyBuilder $CopyBuilder -SourcePath $sourcePath
                 }
             }
         }      
@@ -187,7 +194,7 @@ if ($Artifact.Status -eq 'Present') {
 }
 
 
-Write-Output $ResultBuilder.ToString() -NoEnumerate
+return $ResultBuilder.ToString()
 
 }
 

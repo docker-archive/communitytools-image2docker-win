@@ -25,14 +25,14 @@
     )
 
     Write-Verbose -Message ('Generating Dockerfile based on discovered artifacts in :{0}' -f $Mount.Path)
-    $Dockerfile = ''
 
-        if (! $ArtifactParam) {
-            $Dockerfile = & "Generate_$Artifact" -ManifestPath $ArtifactPath 
-        }
-        else {
-            $Dockerfile = & "Generate_$Artifact" -ManifestPath $ArtifactPath -ArtifactParam $ArtifactParam            
-        }
+    $Dockerfile = ''
+    if (! $ArtifactParam) {
+        $Dockerfile = & "Generate_$Artifact" -ManifestPath $ArtifactPath 
+    }
+    else {
+        $Dockerfile = & "Generate_$Artifact" -ManifestPath $ArtifactPath -ArtifactParam $ArtifactParam            
+    }
 
     $DockerfilePath = '{0}\Dockerfile' -f $ArtifactPath
     Set-Content -Path $DockerfilePath -Value $Dockerfile.Trim()
