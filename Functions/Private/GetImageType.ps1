@@ -47,6 +47,4 @@
         Write-Error -Message ('Error occurred while attempting to inspect the image file. {0}' -f $PSItem.Exception.Message)
         throw $PSItem
     }
-
 }
-

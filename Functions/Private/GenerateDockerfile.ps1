@@ -14,6 +14,9 @@
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true)]
+        [string] $MountPath,
+
+        [Parameter(Mandatory = $true)]
         [string] $ArtifactPath,
         
         [Parameter(Mandatory = $false)]
@@ -24,14 +27,14 @@
 
     )
 
-    Write-Verbose -Message ('Generating Dockerfile based on discovered artifacts in :{0}' -f $Mount.Path)
+    Write-Verbose -Message ('Generating Dockerfile based on discovered artifacts in :{0}' -f $MountPath)
 
     $Dockerfile = ''
     if (! $ArtifactParam) {
-        $Dockerfile = & "Generate_$Artifact" -ManifestPath $ArtifactPath 
+        $Dockerfile = & "Generate_$Artifact" -MountPath $MountPath -ManifestPath $ArtifactPath 
     }
     else {
-        $Dockerfile = & "Generate_$Artifact" -ManifestPath $ArtifactPath -ArtifactParam $ArtifactParam            
+        $Dockerfile = & "Generate_$Artifact" -MountPath $MountPath -ManifestPath $ArtifactPath -ArtifactParam $ArtifactParam            
     }
 
     $DockerfilePath = '{0}\Dockerfile' -f $ArtifactPath

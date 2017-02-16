@@ -14,10 +14,13 @@ Optional - one or more Website names to include in the output.
 [CmdletBinding()]
 param (
     [Parameter(Mandatory = $true)]
+    [string] $MountPath,
+
+    [Parameter(Mandatory = $true)]
     [string] $ManifestPath,
 
     [Parameter(Mandatory = $false)]
-    [string[]] $ArtifactParam
+    [string[]] $ArtifactParam        
 )
 
 function IncludePath([string[]] $pathParts) {
@@ -40,19 +43,23 @@ function ProcessDirectory([System.Text.StringBuilder] $DirectoryBuilder,
                           [System.Text.StringBuilder] $CopyBuilder,
                           [string] $SourcePath,
                           [bool] $FirstDirectory) {
-    Write-Verbose "Processing source directory: $SourcePath"                              
+    Write-Verbose "Processing source directory: $SourcePath"  
+    $targetPath = $SourcePath.Substring(2) # skip the local drive letter
     if ($FirstDirectory -eq $true) {
-        $newPath = "RUN New-Item -Path 'C:$SourcePath' -Type Directory -Force; ``" 
+        $newPath = "RUN New-Item -Path 'C:$targetPath' -Type Directory -Force; ``" 
     }
     else {
-        $newPath = "    New-Item -Path 'C:$SourcePath' -Type Directory -Force; ``" 
+        $newPath = "    New-Item -Path 'C:$targetPath' -Type Directory -Force; ``" 
     }
     $null = $DirectoryBuilder.AppendLine($newPath)
 
-    $copy = 'COPY ["{0}", "{1}"]' -f (Split-Path $SourcePath -Leaf),($sourcePath -Replace "\\","/")
+    $copy = 'COPY ["{0}", "{1}"]' -f (Split-Path $SourcePath -Leaf),($targetPath -Replace "\\","/")
     $null = $CopyBuilder.AppendLine($copy)
 
-    $fullSourcePath = $Mount.Path + $SourcePath
+    $fullSourcePath = $SourcePath
+    if ($Mount) {
+        $fullSourcePath = $MountPath + $targetPath
+    }
     Copy-Item $fullSourcePath $ManifestPath -Recurse -Force
 }
 
@@ -66,7 +73,7 @@ $Artifact = Get-Content -Path $Manifest -Raw | ConvertFrom-Json
 
 if ($Artifact.Status -eq 'Present') {    
     Write-Verbose ('Copying {0} configuration files' -f $ArtifactName)
-    $ConfigPath = $Mount.Path + "\" + "Windows\System32\inetsrv\config"
+    $ConfigPath = $MountPath + "\" + "Windows\System32\inetsrv\config"
     if (Test-Path -Path $ConfigPath) {
         Copy-Item $ConfigPath $ManifestPath -Recurse    
     }

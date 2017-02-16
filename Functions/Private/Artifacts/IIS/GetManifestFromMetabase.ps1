@@ -71,7 +71,7 @@ if (Test-Path -Path $MetabasePath) {
                 Name = $app.AppFriendlyName;
                 ID = $app.Location;
                 ApplicationPool = $app.AppPoolId;
-                PhysicalPath = $app.Path.replace('%SystemDrive%\','\').replace('C:\','\').Replace('c:\','\');
+                PhysicalPath = $app.Path.replace('%SystemDrive%','C:'); # TODO - resolve for mount & local
                 Binding = [PSCustomObject]@{ Protocol = 'http'; #TODO - discover protocol from metabase
                 BindingInformation = "*" + $site.Bindings } 
             }) | Out-Null
@@ -89,7 +89,7 @@ if (Test-Path -Path $MetabasePath) {
         $virtualDirectories =  New-Object System.Collections.ArrayList
         $mainVirtualDir = [PSCustomObject]@{ 
                     Path = '/';
-                    PhysicalPath = $mainApp.Path.replace('%SystemDrive%\','\').replace('C:\','\').Replace('c:\','\');
+                    PhysicalPath = $mainApp.Path.replace('%SystemDrive%','C:'); # TODO - resolve for mount & local
                 }
         $virtualDirectories.add($mainVirtualDir) | Out-Null   
 
@@ -99,7 +99,7 @@ if (Test-Path -Path $MetabasePath) {
             $_.AppFriendlyName -eq $null}){
                 $virtualDirectories.add([PSCustomObject]@{ 
                     Path = '/' + $virtualDirectory.Location.Substring("$SiteId/root/".Length);
-                    PhysicalPath = $virtualDirectory.Path.replace('%SystemDrive%\','\').replace('C:\','\').Replace('c:\','\');
+                    PhysicalPath = $virtualDirectory.Path.replace('%SystemDrive%','C:'); # TODO - resolve for mount & local
                 }) | Out-Null
             }             
         $applications.add([PSCustomObject]@{ 

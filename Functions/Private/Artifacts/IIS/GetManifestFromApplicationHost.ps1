@@ -56,7 +56,7 @@ if (Test-Path -Path $ApplicationHostPath) {
             ForEach ($virtualDirectory in $application.virtualDirectory){
                 $virtualDirectories.add([PSCustomObject]@{ 
                     Path = $virtualDirectory.path;
-                    PhysicalPath = $virtualDirectory.physicalPath.replace('%SystemDrive%\','\').replace('C:\','\').Replace('c:\','\');
+                    PhysicalPath = $virtualDirectory.physicalPath.replace('%SystemDrive%','C:'); # TODO - resolve for mount & local
                 }) | Out-Null
             }
             $applications.add([PSCustomObject]@{ 
@@ -113,7 +113,12 @@ if (Test-Path -Path $ApplicationHostPath) {
 
     #feature selection not valid for 2008 and below:
     if ([decimal]$ImageWindowsVersion -gt 6.1) {
-            $WindowsFeatures = Get-WindowsOptionalFeature -Path $Mount.Path
+            if ($Mount) {
+                $WindowsFeatures = Get-WindowsOptionalFeature -Path $MountPath
+            }
+            else {
+                $WindowsFeatures = Get-WindowsOptionalFeature -Online
+            }
             $IIS = $WindowsFeatures.Where{$_.FeatureName -eq 'IIS-WebServer'}
             $EnabledFeatures = $WindowsFeatures.Where{$_.State -eq 'Enabled'}
             $FeaturesToExport = $EnabledFeatures.Where{$_.FeatureName -match 'IIS'-or 

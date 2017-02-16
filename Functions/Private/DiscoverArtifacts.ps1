@@ -16,6 +16,9 @@
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true)]
+        [string] $MountPath,
+
+        [Parameter(Mandatory = $true)]
         [string[]] $Artifact,
 
         [Parameter(Mandatory = $true)]
@@ -32,12 +35,12 @@
     
     if (!$ArtifactParam) {
         foreach ($item in $Artifact) {
-        & "Discover_$item" -OutputPath $OutputPath -MountPath $Mount.Path -ImageWindowsVersion $ImageWindowsVersion
+        & "Discover_$item" -OutputPath $OutputPath -MountPath $MountPath -ImageWindowsVersion $ImageWindowsVersion
         }
     }
     else {
         foreach ($item in $Artifact) {
-        & "Discover_$item" -OutputPath $OutputPath -MountPath $Mount.Path -ImageWindowsVersion $ImageWindowsVersion -ArtifactParam $ArtifactParam
+        & "Discover_$item" -OutputPath $OutputPath -MountPath $MountPath -ImageWindowsVersion $ImageWindowsVersion -ArtifactParam $ArtifactParam
         }
     }
 

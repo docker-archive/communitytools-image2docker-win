@@ -71,7 +71,7 @@
 
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [ValidateScript({if (!(Test-Path -Path $PSItem)) { return $false } else { return $true } })]
         [string] $ImagePath,
 
@@ -82,71 +82,87 @@
         [string] $MountPath,
 
         [Parameter(Mandatory = $true)]
-        [string[]] $Artifact,
+        [string] $Artifact,
 
         [Parameter(Mandatory = $false)]
         [string[]] $ArtifactParam,
 
         [Parameter(Mandatory = $false)]
-        [Switch] $Force
+        [Switch] $Force,
 
+        [Parameter(Mandatory = $false)]
+        [Switch] $Local
     )
+
+    # TODO - validat eLOcal & ImagePath
 
     ### If the user doesn't specify an output path, then generate one
     if (!$PSBoundParameters.Keys.Contains('OutputPath')) {
         $OutputPath = GenerateOutputFolder
     } 
-    elseif(($PSBoundParameters.Keys.Contains('OutputPath')) -and ($PSBoundParameters.Keys.Contains('Force')))
-    {
+    elseif(($PSBoundParameters.Keys.Contains('OutputPath')) -and ($PSBoundParameters.Keys.Contains('Force'))) {
         $OutputPath = GenerateOutputFolder -Path $OutputPath -Force
     }
     else {
         $OutputPath = GenerateOutputFolder -Path $OutputPath
     }
-    Write-Verbose -Message ('Starting conversion process')
 
-    ### Verify the image type before proceeding
-    $ImageType = GetImageType -Path $ImagePath
-    Write-Verbose -Message ('Image type is: {0}' -f $ImageType)
+    # load the source - local drive, or VHD
+    if ($Local) {
+        $MountPath = $env:SystemDrive
+        $version = [Environment]::OSVersion.Version
+        $ImageWindowsVersion = "$($version.Major).$($version.Minor)"
+        Write-Verbose -Message "Using local drive: $MountPath"
+    }
+    else {
+        # Verify the image type before proceeding
+        $ImageType = GetImageType -Path $ImagePath
+        Write-Verbose -Message ('Image type is: {0}' -f $ImageType)
 
-            try {
-            ### Mount the image to a directory
-
+        try {
+            # Mount the image to a directory
             $Mount = MountImage -ImagePath $ImagePath -MountPath $MountPath
-            Write-Verbose -Message ('Finished mounting image to: {0}' -f $Mount.Path)
+            $MountPath = $Mount.Path
+            Write-Verbose -Message ('Finished mounting image to: {0}' -f $MountPath)
         }
         catch {
             throw 'Fatal error: couldn''t mount image file: {0}' -f $PSItem
         }
     
-    ### Get the Windows version in the image, returns Major.Minor - e.g. 6.2 is Server 2012
-    ### https://en.wikipedia.org/wiki/List_of_Microsoft_Windows_versions
-    $info = Get-WindowsImage -Index 1 -ImagePath $ImagePath
-    $ImageWindowsVersion = "$($info.MajorVersion).$($info.MinorVersion)"
-
-    ### Perform artifact discovery
-    if (!$PSBoundParameters.Keys.Contains('Artifact')) {
-        $Artifact = Get-WindowsArtifact
-    }
-    if (!$PSBoundParameters.Keys.Contains('ArtifactParam')) {
-         DiscoverArtifacts -Artifact $Artifact -OutputPath $OutputPath -ImageWindowsVersion $ImageWindowsVersion
-    }
-    else {
-        DiscoverArtifacts -Artifact $Artifact -OutputPath $OutputPath -ImageWindowsVersion $ImageWindowsVersion -ArtifactParam $ArtifactParam
+        # Get the Windows version in the image, returns Major.Minor - e.g. 6.2 is Server 2012
+        # https://en.wikipedia.org/wiki/List_of_Microsoft_Windows_versions
+        $info = Get-WindowsImage -Index 1 -ImagePath $ImagePath
+        $ImageWindowsVersion = "$($info.MajorVersion).$($info.MinorVersion)"
     }
 
-    ### Generate Dockerfile
-    if (!$PSBoundParameters.Keys.Contains('ArtifactParam')) {
-        GenerateDockerfile -ArtifactPath $OutputPath -Artifact $Artifact
-    }
-    else {
-        GenerateDockerfile -ArtifactPath $OutputPath -Artifact $Artifact -ArtifactParam $ArtifactParam
-    }
-    Write-Verbose -Message 'Finished generating the Dockerfile'
+    Write-Verbose -Message ('Starting conversion process')
+    try {
+        ### Perform artifact discovery
+        if (!$PSBoundParameters.Keys.Contains('Artifact')) {
+            $Artifact = Get-WindowsArtifact
+        }
+        if (!$PSBoundParameters.Keys.Contains('ArtifactParam')) {
+            DiscoverArtifacts -MountPath $MountPath -Artifact $Artifact -OutputPath $OutputPath -ImageWindowsVersion $ImageWindowsVersion
+        }
+        else {
+            DiscoverArtifacts -MountPath $MountPath -Artifact $Artifact -OutputPath $OutputPath -ImageWindowsVersion $ImageWindowsVersion -ArtifactParam $ArtifactParam
+        }
 
-    ### Dismount the image when inspection is completed
-    $null = Dismount-WindowsImage -Path $Mount.Path -Discard
-    Write-Verbose -Message ('Finished dismounting the Windows image from {0}' -f $Mount.Path)
-
+        ### Generate Dockerfile
+        if (!$PSBoundParameters.Keys.Contains('ArtifactParam')) {
+            GenerateDockerfile -MountPath $MountPath -ArtifactPath $OutputPath -Artifact $Artifact
+        }
+        else {
+            GenerateDockerfile -MountPath $MountPath -ArtifactPath $OutputPath -Artifact $Artifact -ArtifactParam $ArtifactParam
+        }
+        Write-Verbose -Message 'Finished generating the Dockerfile'
+    }
+    finally {
+        if ($Mount) {
+            ### Dismount the image when inspection is completed
+            $null = Dismount-WindowsImage -Path $MountPath -Discard
+            Write-Verbose -Message ('Finished dismounting the Windows image from {0}' -f $MountPath)
+        }
+    }
 }
 
