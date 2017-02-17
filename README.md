@@ -2,6 +2,10 @@
 
 `Image2Docker` is a PowerShell module which ports existing Windows application workloads from virtual machines to Docker images. It supports multiple application types, but the initial focus is on IIS. You can use `Image2Docker` to extract [ASP.NET websites from a VM](https://blog.docker.com/2016/12/convert-asp-net-web-servers-docker-image2docker/), so you can run them in a Docker container with no application changes.
 
+## Documentation
+
+* [IIS and ASP.NET](docs/IIS.md)
+
 ## Introduction
 
 This project aims to provide a framework to simplify the creation of Dockerfiles for Windows Docker
