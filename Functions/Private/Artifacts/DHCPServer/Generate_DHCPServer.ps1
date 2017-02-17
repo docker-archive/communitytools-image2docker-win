@@ -9,6 +9,9 @@ The filesystem path where the JSON manifests are stored.
 [CmdletBinding()]
 param (
     [Parameter(Mandatory = $true)]
+    [string] $MountPath,
+    
+    [Parameter(Mandatory = $true)]
     [string] $ManifestPath
 )
 

@@ -8,9 +8,15 @@
     This command is the main entrypoint into this PowerShell module.
 
     .PARAMETER ImagePath
-    The filesystem path to the valid WIM or VHDX file that will be inspected for artifacts.
+    Use a Windows image file as the source for the artifacts. Specify the filesystem path to the valid WIM or VHDX file.
 
     NOTE: You will need administrative permissions in order to mount and inspect image files.
+
+    .PARAMETER Local
+    Use the local machine as the source for the artifacts.
+
+    .PARAMETER RemotePath
+    Use a remote machine as the source for the artifacts. Specify the path to the system drive on the remote machine.
 
     .PARAMETER OutputPath
     An optional parameter that specifies the filesystem path where artifacts and the resulting
@@ -68,7 +74,7 @@
 
     #>
 
-
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidGlobalVars",'')]
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $false)]

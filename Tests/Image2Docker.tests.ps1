@@ -113,9 +113,15 @@ Describe 'Current Tests' {
             }
       }
   }
-     Context 'Test ConvertTo-Dockerfile command' {
+     Context 'Test ConvertTo-Dockerfile image path' {
         It 'Should throw when -ImagePath parameter value is invalid' {
-            { ConvertTo-Dockerfile -ImagePath c:\invalid\path.wim } | Should throw
+            { ConvertTo-Dockerfile -ImagePath c:\invalid\path.wim -Artifact IIS } | Should throw
+        }
+    }
+
+    Context 'Test ConvertTo-Dockerfile source' {
+        It 'Should throw when none of -ImagePath, -RemotePath or -Local are passed' {
+            { ConvertTo-Dockerfile -Artifact IIS } | Should throw
         }
     }
 
