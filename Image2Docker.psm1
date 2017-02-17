@@ -6,6 +6,12 @@ enum ImageType {
     WIM
 }
 
+enum SourceType {
+    Image
+    Local
+    Remote
+}
+
 ### Obtain the module path
 $ModulePath = $ExecutionContext.SessionState.Module.ModuleBase
 

@@ -57,7 +57,8 @@ function ProcessDirectory([System.Text.StringBuilder] $DirectoryBuilder,
     $null = $CopyBuilder.AppendLine($copy)
 
     $fullSourcePath = $SourcePath
-    if ($Mount) {
+    if ($global:SourceType -eq [SourceType]::Image -or
+        $global:SourceType -eq [SourceType]::Remote) {
         $fullSourcePath = $MountPath + $targetPath
     }
     Copy-Item $fullSourcePath $ManifestPath -Recurse -Force
@@ -99,7 +100,6 @@ if ($Artifact.Status -eq 'Present') {
         $null = $ResultBuilder.AppendLine('')
     }    
 
-    $null = $ResultBuilder.AppendLine('')
     for ($i=0;$i -lt $Artifact.Websites.Count;$i++) {
         $Site = $Artifact.Websites[$i]
         $include = IncludePath($Site.Name)
@@ -207,4 +207,3 @@ if ($Artifact.Status -eq 'Present') {
 return $ResultBuilder.ToString()
 
 }
-

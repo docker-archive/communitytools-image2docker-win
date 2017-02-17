@@ -104,32 +104,35 @@ if (Test-Path -Path $ApplicationHostPath) {
                 Name = $Handler.name
                 Path = $Handler.path
                 Verb = $Handler.verb
-                }) | Out-Null
+                Processor = $Handler.scriptProcessor
+            }) | Out-Null
         }
-        if ($Handler.path.Contains('.aspx')) {
+        if ($Handler.Path.Contains('.aspx')) {
             $AspNetInstalled = $true
         }
     }
 
     #feature selection not valid for 2008 and below:
     if ([decimal]$ImageWindowsVersion -gt 6.1) {
-            if ($Mount) {
-                $WindowsFeatures = Get-WindowsOptionalFeature -Path $MountPath
-            }
-            else {
-                $WindowsFeatures = Get-WindowsOptionalFeature -Online
-            }
+        if ($global:SourceType -eq [SourceType]::Image) {
+            $WindowsFeatures = Get-WindowsOptionalFeature -Path $MountPath
+        }
+        elseif ($global:SourceType -eq [SourceType]::Local) {
+            $WindowsFeatures = Get-WindowsOptionalFeature -Online
+        }
+        if ($WindowsFeatures) {
             $IIS = $WindowsFeatures.Where{$_.FeatureName -eq 'IIS-WebServer'}
             $EnabledFeatures = $WindowsFeatures.Where{$_.State -eq 'Enabled'}
             $FeaturesToExport = $EnabledFeatures.Where{$_.FeatureName -match 'IIS'-or 
-                                                    $_.FeatureName -match 'ASPNET' -or 
-                                                    $_.FeatureName -match 'Asp-Net' -and 
-                                                    $_.FeatureName -NotMatch 'Management'} | Sort-Object FeatureName | Select-Object -ExpandProperty FeatureName 
-        
+                                                       $_.FeatureName -match 'ASPNET' -or 
+                                                       $_.FeatureName -match 'Asp-Net' -and 
+                                                       $_.FeatureName -NotMatch 'Management'} | Sort-Object FeatureName | Select-Object -ExpandProperty FeatureName 
+            
             $ManifestResult.FeatureName = $FeaturesToExport  -join ';'  
             if ($ManifestResult.FeatureName -like '*ASPNET*' -or $ManifestResult.FeatureName -like '*Asp-Net*'){
-            $AspNetInstalled = $true
-            }        
+                $AspNetInstalled = $true
+            }
+        }
     }
       
     $ManifestResult.Status = 'Present'
@@ -142,10 +145,7 @@ if (Test-Path -Path $ApplicationHostPath) {
 
     if ($AspNetInstalled -eq $true){        
         $ManifestResult.AspNetStatus = 'Present'
-    } 
-
-    #TODO 
-    $ManifestResult.AspNet35Status = 'Absent'
+    }     
 }
 
 return $ManifestResult 

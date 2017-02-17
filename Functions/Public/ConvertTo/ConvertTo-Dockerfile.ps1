@@ -91,7 +91,10 @@
         [Switch] $Force,
 
         [Parameter(Mandatory = $false)]
-        [Switch] $Local
+        [Switch] $Local,
+
+        [Parameter(Mandatory = $false)]
+        [string] $RemotePath
     )
 
     # TODO - validat eLOcal & ImagePath
@@ -108,13 +111,22 @@
     }
 
     # load the source - local drive, or VHD
+    $global:SourceType = [SourceType]::Local
     if ($Local) {
         $MountPath = $env:SystemDrive
         $version = [Environment]::OSVersion.Version
         $ImageWindowsVersion = "$($version.Major).$($version.Minor)"
         Write-Verbose -Message "Using local drive: $MountPath"
     }
-    else {
+    elseif ($RemotePath) {
+        $global:SourceType = [SourceType]::Remote
+        $MountPath = $RemotePath
+        $version = (Get-ItemProperty -Path "$RemotePath\windows\system32\hal.dll").VersionInfo.ProductVersion
+        $ImageWindowsVersion = $version.Substring(0, $version.IndexOf('.', $version.IndexOf('.')+1))
+        Write-Verbose -Message "Using remote drive: $RemotePath"
+    }
+    elseif ($ImagePath) {
+        $global:SourceType = [SourceType]::Image
         # Verify the image type before proceeding
         $ImageType = GetImageType -Path $ImagePath
         Write-Verbose -Message ('Image type is: {0}' -f $ImageType)
@@ -133,6 +145,9 @@
         # https://en.wikipedia.org/wiki/List_of_Microsoft_Windows_versions
         $info = Get-WindowsImage -Index 1 -ImagePath $ImagePath
         $ImageWindowsVersion = "$($info.MajorVersion).$($info.MinorVersion)"
+    }
+    else {
+        throw "Source not specified. One of -Local, -ImagePath or -RemotePath is required."
     }
 
     Write-Verbose -Message ('Starting conversion process')
