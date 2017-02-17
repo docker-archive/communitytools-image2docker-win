@@ -131,7 +131,8 @@ if ($Artifact.Status -eq 'Present') {
 
         # creating the website creates the default app & vdir underneath it
         $sourcePath = $mainVirtualDir.PhysicalPath
-        $newSite = "RUN New-Website -Name '$($Site.Name)' -PhysicalPath 'C:$sourcePath' -Port $($mainBinding.BindingInformation.split(':')[-2]) -Force; ``"
+        $targetPath = $sourcePath.Substring(2)
+        $newSite = "RUN New-Website -Name '$($Site.Name)' -PhysicalPath 'C:$targetPath' -Port $($mainBinding.BindingInformation.split(':')[-2]) -Force; ``"
         $AppBuilder = New-Object System.Text.StringBuilder
         $null = $AppBuilder.AppendLine($newSite)
 
@@ -149,7 +150,8 @@ if ($Artifact.Status -eq 'Present') {
             if ($appName.Length -gt 0) {
                 Write-Verbose -Message ('Creating web app {0}' -f $appName)
                 $sourcePath = $appVirtualDir.PhysicalPath
-                $newApp = "    New-WebApplication -Name '$appName' -Site '$($Site.Name)' -PhysicalPath 'C:$sourcePath' -Force; ``"
+                $targetPath = $sourcePath.Substring(2)
+                $newApp = "    New-WebApplication -Name '$appName' -Site '$($Site.Name)' -PhysicalPath 'C:$targetPath' -Force; ``"
                 $null = $AppBuilder.AppendLine($newApp)                
                 if ($sourcePath -ne $mainVirtualDir.PhysicalPath) {
                     ProcessDirectory -DirectoryBuilder $DirectoryBuilder -CopyBuilder $CopyBuilder -SourcePath $sourcePath                  
@@ -168,12 +170,13 @@ if ($Artifact.Status -eq 'Present') {
 
                 Write-Verbose -Message ('Creating virtual directory {0}' -f $dirName)
                 $sourcePath = $virtualDir.PhysicalPath
+                $targetPath = $sourcePath.Substring(2)
                 $newDir = ''
                 if ($appName.Length -gt 0) {
-                    $newDir = "    New-WebVirtualDirectory -Name '$dirName' -Application '$appName' -Site '$($Site.Name)' -PhysicalPath 'C:$sourcePath'; ``"
+                    $newDir = "    New-WebVirtualDirectory -Name '$dirName' -Application '$appName' -Site '$($Site.Name)' -PhysicalPath 'C:$targetPath'; ``"
                 }
                 else {
-                    $newDir = "    New-WebVirtualDirectory -Name '$dirName' -Site '$($Site.Name)' -PhysicalPath 'C:$sourcePath'; ``"
+                    $newDir = "    New-WebVirtualDirectory -Name '$dirName' -Site '$($Site.Name)' -PhysicalPath 'C:$targetPath'; ``"
                 }
                 $null = $AppBuilder.AppendLine($newDir)
 
