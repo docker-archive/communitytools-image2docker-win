@@ -7,7 +7,7 @@
 $ErrorActionPreference = 'Stop'
 
 $InputPath = 'E:\VMs\'
-if ((Test-Path -Path $OutputPath) -eq $false){
+if ((Test-Path -Path $InputPath) -eq $false){
     Write-Verbose 'Input folder not found. Quitting.'
     return
 }
@@ -16,7 +16,7 @@ Remove-Module -Name Image2Docker -Force -ErrorAction Ignore
 Import-Module -Name $PSScriptRoot\..\Image2Docker.psd1
 
 # setup output folder:
-$OutputPath = 'c:\12d2\_manual'
+$OutputPath = 'c:\i2d2\_manual'
 if (Test-Path -Path $OutputPath) {
     Remove-Item -Path $OutputPath -Recurse -Force
 }
@@ -26,10 +26,13 @@ $null = New-Item -Path $OutputPath -ItemType Directory
 $ImageFiles = @('win2003-iis.vhd', 'win2008-iis.vhdx', 'win2012-iis.vhdx', 'win2016-iis.vhd')
 foreach ($File in $ImageFiles) {
     $os = $File.Split('-')[0]
+    docker kill "$os-manual"
+    docker rm "$os-manual"
+    docker rmi -f "i2d2/$os-manual"
     ConvertTo-Dockerfile -ImagePath "$InputPath\$File" -OutputPath "$OutputPath\$os" -Artifact IIS -Verbose -Force
-    cd  "$OutputPath\$os"
+    cd "$OutputPath\$os"
     docker build -t "i2d2/$os-manual" .
-    docker run -d "i2d2/$os-manual"
+    docker run -d --publish-all --name "$os-manual" "i2d2/$os-manual"
 }
 
 Write-Verbose 'Everything seems OK.'

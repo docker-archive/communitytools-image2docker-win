@@ -1,0 +1,5 @@
+# escape=`
+FROM microsoft/iis:windowsservercore-10.0.14393.693
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+
+RUN Remove-Website 'Default Web Site';

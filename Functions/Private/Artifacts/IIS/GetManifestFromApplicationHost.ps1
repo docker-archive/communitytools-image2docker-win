@@ -32,6 +32,7 @@ $ManifestResult = @{
     FeatureName = ''
     Status = 'Absent'
     AspNetStatus = 'Absent'
+    AspNet35Status = 'Absent'
 }
 
 $ApplicationHostPath = "$MountPath\Windows\System32\inetsrv\config\applicationHost.config"
@@ -45,19 +46,41 @@ if (Test-Path -Path $ApplicationHostPath) {
     $applicationDefaults = $AllSites.applicationDefaults
     $virtualDirectoryDefaults = $AllSites.virtualDirectoryDefaults
     $sites = $AllSites.site
-    if ($ArtifactParam) {
-        $sites = $sites.where{$_.name -in $ArtifactParam }
-    }
+
     $Websites = New-Object System.Collections.ArrayList
-    ForEach ($site in $sites) {        
-       $Websites.add([PSCustomObject]@{ 
+    ForEach ($site in $sites) { 
+
+        $applications = New-Object System.Collections.ArrayList
+        ForEach ($application in $site.application) {
+            $virtualDirectories =  New-Object System.Collections.ArrayList
+            ForEach ($virtualDirectory in $application.virtualDirectory){
+                $virtualDirectories.add([PSCustomObject]@{ 
+                    Path = $virtualDirectory.path;
+                    PhysicalPath = $virtualDirectory.physicalPath.replace('%SystemDrive%','C:'); # TODO - resolve for mount & local
+                }) | Out-Null
+            }
+            $applications.add([PSCustomObject]@{ 
+                Path = $application.path;
+                ApplicationPool = $application.ApplicationPool;
+                VirtualDirectories = $virtualDirectories;
+            }) | Out-Null
+        }
+
+        $bindings = New-Object System.Collections.ArrayList
+        ForEach ($binding in $site.bindings.binding) {
+            $bindings.add([PSCustomObject]@{ 
+                Protocol = $binding.Protocol;
+                BindingInformation = $binding.bindingInformation
+            }) | Out-Null
+        }
+
+        $Websites.add([PSCustomObject]@{ 
                     Name = $site.name;
                     ID = $site.id;
-                    ApplicationPool = $site.application.ApplicationPool
-                    PhysicalPath = $site.application.virtualDirectory.physicalPath.replace('%SystemDrive%\','\').replace('C:\','\').Replace('c:\','\');
-                    Binding = [PSCustomObject]@{ Protocol = $site.bindings.binding.Protocol;
-                                                 BindingInformation = $site.bindings.binding.bindingInformation } }) | Out-Null
-        }
+                    Applications = $applications;
+                    Bindings = $bindings;                    
+            }) | Out-Null
+    }
 
     $AllApplicationPools = $IISConfig | Select-Xml -XPath "//applicationPools" | Select-Object -ExpandProperty Node
     $ApplicationPools = $AllApplicationPools.add.name
@@ -81,27 +104,35 @@ if (Test-Path -Path $ApplicationHostPath) {
                 Name = $Handler.name
                 Path = $Handler.path
                 Verb = $Handler.verb
-                }) | Out-Null
+                Processor = $Handler.scriptProcessor
+            }) | Out-Null
         }
-        if ($Handler.path.Contains('.aspx')) {
+        if ($Handler.Path.Contains('.aspx')) {
             $AspNetInstalled = $true
         }
     }
 
     #feature selection not valid for 2008 and below:
     if ([decimal]$ImageWindowsVersion -gt 6.1) {
-            $WindowsFeatures = Get-WindowsOptionalFeature -Path $Mount.Path
+        if ($global:SourceType -eq [SourceType]::Image) {
+            $WindowsFeatures = Get-WindowsOptionalFeature -Path $MountPath
+        }
+        elseif ($global:SourceType -eq [SourceType]::Local) {
+            $WindowsFeatures = Get-WindowsOptionalFeature -Online
+        }
+        if ($WindowsFeatures) {
             $IIS = $WindowsFeatures.Where{$_.FeatureName -eq 'IIS-WebServer'}
             $EnabledFeatures = $WindowsFeatures.Where{$_.State -eq 'Enabled'}
             $FeaturesToExport = $EnabledFeatures.Where{$_.FeatureName -match 'IIS'-or 
-                                                    $_.FeatureName -match 'ASPNET' -or 
-                                                    $_.FeatureName -match 'Asp-Net' -and 
-                                                    $_.FeatureName -NotMatch 'Management'} | Sort-Object FeatureName | Select-Object -ExpandProperty FeatureName 
-        
+                                                       $_.FeatureName -match 'ASPNET' -or 
+                                                       $_.FeatureName -match 'Asp-Net' -and 
+                                                       $_.FeatureName -NotMatch 'Management'} | Sort-Object FeatureName | Select-Object -ExpandProperty FeatureName 
+            
             $ManifestResult.FeatureName = $FeaturesToExport  -join ';'  
             if ($ManifestResult.FeatureName -like '*ASPNET*' -or $ManifestResult.FeatureName -like '*Asp-Net*'){
-            $AspNetInstalled = $true
-            }        
+                $AspNetInstalled = $true
+            }
+        }
     }
       
     $ManifestResult.Status = 'Present'
@@ -114,7 +145,7 @@ if (Test-Path -Path $ApplicationHostPath) {
 
     if ($AspNetInstalled -eq $true){        
         $ManifestResult.AspNetStatus = 'Present'
-    } 
+    }     
 }
 
 return $ManifestResult 

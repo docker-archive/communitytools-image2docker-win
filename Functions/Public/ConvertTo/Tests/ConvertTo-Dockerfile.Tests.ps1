@@ -5,8 +5,8 @@
         It 'Has a Parameter called ImagePath' {
             $Function.Parameters.Keys.Contains('ImagePath') | Should Be 'True'
             }
-        It 'ImagePath Parameter is Identified as Mandatory being True' {
-            [String]$Function.Parameters.ImagePath.Attributes.Mandatory | Should be 'True'
+        It 'ImagePath Parameter is Identified as Mandatory being False' {
+            [String]$Function.Parameters.ImagePath.Attributes.Mandatory | Should be 'False'
             }
         It 'ImagePath Parameter is of String Type' {
             $Function.Parameters.ImagePath.ParameterType.FullName | Should be 'System.String'
@@ -98,11 +98,11 @@
         It 'Has a Parameter called Artifact' {
             $Function.Parameters.Keys.Contains('Artifact') | Should Be 'True'
             }
-        It 'Artifact Parameter is Identified as Mandatory being False' {
-            [String]$Function.Parameters.Artifact.Attributes.Mandatory | Should be 'False'
+        It 'Artifact Parameter is Identified as Mandatory being True' {
+            [String]$Function.Parameters.Artifact.Attributes.Mandatory | Should be 'True'
             }
         It 'Artifact Parameter is of String[] Type' {
-            $Function.Parameters.Artifact.ParameterType.FullName | Should be 'System.String[]'
+            $Function.Parameters.Artifact.ParameterType.FullName | Should be 'System.String'
             }
         It 'Artifact Parameter is member of ParameterSets' {
             [String]$Function.Parameters.Artifact.ParameterSets.Keys | Should Be '__AllParameterSets'

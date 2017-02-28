@@ -14,35 +14,77 @@ Optional - one or more Website names to include in the output.
 [CmdletBinding()]
 param (
     [Parameter(Mandatory = $true)]
+    [string] $MountPath,
+
+    [Parameter(Mandatory = $true)]
     [string] $ManifestPath,
 
     [Parameter(Mandatory = $false)]
-    [string[]] $ArtifactParam
+    [string[]] $ArtifactParam        
 )
+
+function IncludePath([string[]] $pathParts) {
+    if ($ArtifactParam -eq $null){
+        return $true
+    }
+    ForEach ($param in $ArtifactParam){
+        $parts = $param.Split('/', [System.StringSplitOptions]::RemoveEmptyEntries)        
+        $comp = Compare-Object $parts $pathParts
+        if ($comp -eq $null -Or $comp -isnot [System.Array]) {
+            return $true
+        }
+        $indicators = $comp | Foreach-Object { $_.SideIndicator } | Select-Object -unique
+        return ($indicators).Count -eq 1 
+    }
+    return $false
+}
+
+function ProcessDirectory([System.Text.StringBuilder] $DirectoryBuilder, 
+                          [System.Text.StringBuilder] $CopyBuilder,
+                          [string] $SourcePath,
+                          [bool] $FirstDirectory) {
+    Write-Verbose "Processing source directory: $SourcePath"  
+    $targetPath = $SourcePath.Substring(2) # skip the local drive letter
+    if ($FirstDirectory -eq $true) {
+        $newPath = "RUN New-Item -Path 'C:$targetPath' -Type Directory -Force; ``" 
+    }
+    else {
+        $newPath = "    New-Item -Path 'C:$targetPath' -Type Directory -Force; ``" 
+    }
+    $null = $DirectoryBuilder.AppendLine($newPath)
+
+    $copy = 'COPY ["{0}", "{1}"]' -f (Split-Path $SourcePath -Leaf),($targetPath -Replace "\\","/")
+    $null = $CopyBuilder.AppendLine($copy)
+
+    $fullSourcePath = $SourcePath
+    if ($global:SourceType -eq [SourceType]::Image -or
+        $global:SourceType -eq [SourceType]::Remote) {
+        $fullSourcePath = $MountPath + $targetPath
+    }
+    Copy-Item $fullSourcePath $ManifestPath -Recurse -Force
+}
 
 $ArtifactName = Split-Path -Path $PSScriptRoot -Leaf
 
 Write-Verbose -Message ('Generating result for {0} component' -f (Split-Path -Path $PSScriptRoot -Leaf))
 $Manifest = '{0}\{1}.json' -f $ManifestPath, $ArtifactName 
-$ResultBuilder = New-Object System.Text.StringBuilder
+$ResultBuilder = GetDockerfileBuilder
 
 $Artifact = Get-Content -Path $Manifest -Raw | ConvertFrom-Json
 
-if ($Artifact.Status -eq 'Present') {
+if ($Artifact.Status -eq 'Present') {    
     Write-Verbose ('Copying {0} configuration files' -f $ArtifactName)
-    $ConfigPath = $Mount.Path + "\" + "Windows\System32\inetsrv\config"
+    $ConfigPath = $MountPath + "\" + "Windows\System32\inetsrv\config"
     if (Test-Path -Path $ConfigPath) {
         Copy-Item $ConfigPath $ManifestPath -Recurse    
     }
-
-    Write-Verbose -Message ('Writing instruction to install IIS')
-    $null = $ResultBuilder.AppendLine('# Install Windows features for IIS')
-    $null = $ResultBuilder.Append('RUN Add-WindowsFeature Web-server')
     if ($Artifact.AspNetStatus -eq 'Present') {
-        Write-Verbose -Message ('Writing instruction to install ASP.NET')
-        $null = $ResultBuilder.Append(', NET-Framework-45-ASPNET, Web-Asp-Net45')
+        $DockerfileTemplate = 'Dockerfile-ASPNET.template'
     }
-    $null = $ResultBuilder.AppendLine('')
+    if ($Artifact.AspNet35Status -eq 'Present') {
+        $DockerfileTemplate = 'Dockerfile-ASPNET-35.template'
+    }
+    $ResultBuilder = GetDockerfileBuilder($DockerfileTemplate)
 
     if ($Artifact.FeatureName.length -gt 0) {
         $null = $ResultBuilder.AppendLine("RUN Enable-WindowsOptionalFeature -Online -FeatureName $($Artifact.FeatureName.Replace(';',','))")
@@ -58,35 +100,110 @@ if ($Artifact.Status -eq 'Present') {
         $null = $ResultBuilder.AppendLine('')
     }    
 
-    $null = $ResultBuilder.AppendLine('')
-    $null = $ResultBuilder.AppendLine("RUN Remove-Website 'Default Web Site'")
-
-    $null = $ResultBuilder.AppendLine('')
     for ($i=0;$i -lt $Artifact.Websites.Count;$i++) {
         $Site = $Artifact.Websites[$i]
-        $SitePath = $Mount.Path + $Site.PhysicalPath
-        Write-Verbose -Message ('Copying website files from {0} to {1}' -f $SitePath, $ManifestPath)
-        Copy-Item $SitePath $ManifestPath -Recurse
-
-        Write-Verbose -Message ('Writing instruction to copy files for {0} site' -f  $Site.Name)
-        $null = $ResultBuilder.AppendLine("# Set up website: $($Site.Name)")        
-        $copy = "COPY {0} {1}" -f (Split-Path $Site.PhysicalPath -Leaf),($Site.PhysicalPath -Replace "\\","/")
-        $null = $ResultBuilder.AppendLine($copy)
+        $include = IncludePath($Site.Name)
+        if ($include -ne $true){
+            Write-Verbose "** Skipping site path: $($Site.Name)"
+            continue
+        }
+  
+        if ($Site.Applications -is [system.array]){
+            $mainApp = $Site.Applications.where{$_.Path -eq '/' }
+        }
+        else {
+            $mainApp = $Site.Applications
+        }
+        if ($mainApp.VirtualDirectories -is [system.array]){
+            $mainVirtualDir = $mainApp.VirtualDirectories.where{$_.Path -eq '/' }
+        }
+        else {
+            $mainVirtualDir = $mainApp.VirtualDirectories
+        }        
+        $mainBinding = $Site.Bindings[0]
 
         Write-Verbose -Message ('Writing instruction to create site {0}' -f  $Site.Name)
-        $newSite = 'RUN New-Website -Name ''{0}'' -PhysicalPath "C:{1}" -Port {2} -Force' -f ($Site.Name -replace "'","''"), $Site.PhysicalPath, $Site.binding.bindingInformation.split(':')[-2]
-        $null = $ResultBuilder.AppendLine($newSite)
 
-        Write-Verbose -Message ('Writing instruction to expose port for site {0}' -f  $Site.Name)
-        $null = $ResultBuilder.AppendLine("EXPOSE $($Site.binding.bindingInformation.split(':')[-2])")
-        $null = $ResultBuilder.AppendLine('')
-    }
+        # process the main site path
+        $DirectoryBuilder = New-Object System.Text.StringBuilder
+        $CopyBuilder = New-Object System.Text.StringBuilder
+        ProcessDirectory -DirectoryBuilder $DirectoryBuilder -CopyBuilder $CopyBuilder -SourcePath $mainVirtualDir.PhysicalPath -FirstDirectory $true
+
+        # creating the website creates the default app & vdir underneath it
+        $sourcePath = $mainVirtualDir.PhysicalPath
+        $targetPath = $sourcePath.Substring(2)
+        $newSite = "RUN New-Website -Name '$($Site.Name)' -PhysicalPath 'C:$targetPath' -Port $($mainBinding.BindingInformation.split(':')[-2]) -Force; ``"
+        $AppBuilder = New-Object System.Text.StringBuilder
+        $null = $AppBuilder.AppendLine($newSite)
+
+        # now create additional apps and vdirs
+        ForEach ($application in $Site.Applications) {
+            $appVirtualDir = $application.VirtualDirectories.where{$_.Path -eq '/' }            
+            $appName = $application.Path.Substring(1) #remove initial '/'
+
+            $include = IncludePath($Site.Name, $appName)
+            if ($appName.Length -gt 0 -And $include -ne $true){
+                Write-Verbose "** Skipping app path: $($Site.Name)$($application.Path)"
+                continue
+            }
+
+            if ($appName.Length -gt 0) {
+                Write-Verbose -Message ('Creating web app {0}' -f $appName)
+                $sourcePath = $appVirtualDir.PhysicalPath
+                $targetPath = $sourcePath.Substring(2)
+                $newApp = "    New-WebApplication -Name '$appName' -Site '$($Site.Name)' -PhysicalPath 'C:$targetPath' -Force; ``"
+                $null = $AppBuilder.AppendLine($newApp)                
+                if ($sourcePath -ne $mainVirtualDir.PhysicalPath) {
+                    ProcessDirectory -DirectoryBuilder $DirectoryBuilder -CopyBuilder $CopyBuilder -SourcePath $sourcePath                  
+                }
+            }
+
+            $virtualDirectories = $application.VirtualDirectories.where{$_.Path -ne '/' } 
+            ForEach ($virtualDir in $virtualDirectories) {
+                $dirName = $virtualDir.Path.Substring(1) #remove initial '/'
+
+                $include = IncludePath($Site.Name, $appName, $dirName)
+                if ($dirName.Length -gt 0 -And $include -ne $true){
+                    Write-Verbose "** Skipping vdir path: $($Site.Name)$($application.Path)$($virtualDir.Path)"
+                    continue
+                }
+
+                Write-Verbose -Message ('Creating virtual directory {0}' -f $dirName)
+                $sourcePath = $virtualDir.PhysicalPath
+                $targetPath = $sourcePath.Substring(2)
+                $newDir = ''
+                if ($appName.Length -gt 0) {
+                    $newDir = "    New-WebVirtualDirectory -Name '$dirName' -Application '$appName' -Site '$($Site.Name)' -PhysicalPath 'C:$targetPath'; ``"
+                }
+                else {
+                    $newDir = "    New-WebVirtualDirectory -Name '$dirName' -Site '$($Site.Name)' -PhysicalPath 'C:$targetPath'; ``"
+                }
+                $null = $AppBuilder.AppendLine($newDir)
+
+                if ($sourcePath -ne $mainVirtualDir.PhysicalPath) {           
+                    ProcessDirectory -DirectoryBuilder $DirectoryBuilder -CopyBuilder $CopyBuilder -SourcePath $sourcePath
+                }
+            }
+        }      
+
+        $null = $ResultBuilder.AppendLine("# Set up website: $($Site.Name)") 
         
-    $null = $ResultBuilder.AppendLine('CMD /Wait-Service.ps1 -ServiceName W3SVC -AllowServiceRestart')
+        $null = $ResultBuilder.AppendLine($DirectoryBuilder.ToString().Trim().TrimEnd('``'))
+        $null = $ResultBuilder.AppendLine('') 
+
+        $null = $ResultBuilder.AppendLine($AppBuilder.ToString().Trim().TrimEnd('``'))
+        $null = $ResultBuilder.AppendLine('') 
+
+        Write-Verbose -Message ('Writing instruction to expose port for site {0}' -f  $Site.Name)    
+        $null = $ResultBuilder.AppendLine("EXPOSE $($mainBinding.BindingInformation.split(':')[-2])")
+        $null = $ResultBuilder.AppendLine('')
+
+        $null = $ResultBuilder.AppendLine($CopyBuilder.ToString().Trim().TrimEnd('``'))
+        $null = $ResultBuilder.AppendLine('')   
+    }
 }
 
 
-Write-Output $ResultBuilder.ToString() -NoEnumerate
+return $ResultBuilder.ToString()
 
 }
-

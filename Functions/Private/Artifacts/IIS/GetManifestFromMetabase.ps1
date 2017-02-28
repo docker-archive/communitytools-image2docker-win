@@ -32,6 +32,7 @@ $ManifestResult = @{
     FeatureName = ''
     Status = 'Absent'
     AspNetStatus = 'Absent'
+    AspNet35Status = 'Absent'
 }
 
 $MetabasePath = "$MountPath\Windows\System32\inetsrv\MetaBase.xml"
@@ -60,9 +61,6 @@ if (Test-Path -Path $MetabasePath) {
     Write-Verbose -Message "Found: $($Sites.Count) sites"
     
     $apps = $IISConfig.configuration.MBProperty.IIsWebVirtualDir
-    if ($ArtifactParam) {
-        $apps = $apps.where{$_.AppFriendlyName -in $ArtifactParam }
-    }
 
     $Websites = New-Object System.Collections.ArrayList
     ForEach ($app in $apps) { 
@@ -73,12 +71,74 @@ if (Test-Path -Path $MetabasePath) {
                 Name = $app.AppFriendlyName;
                 ID = $app.Location;
                 ApplicationPool = $app.AppPoolId;
-                PhysicalPath = $app.Path.replace('%SystemDrive%\','\').replace('C:\','\').Replace('c:\','\');
+                PhysicalPath = $app.Path.replace('%SystemDrive%','C:'); # TODO - resolve for mount & local
                 Binding = [PSCustomObject]@{ Protocol = 'http'; #TODO - discover protocol from metabase
-                BindingInformation = "*" + $site.Bindings } }) | Out-Null
-            }
+                BindingInformation = "*" + $site.Bindings } 
+            }) | Out-Null
         }
-    
+    }    
+
+    $Websites = New-Object System.Collections.ArrayList
+    $iis = $IISConfig.configuration.MBProperty
+    ForEach ($site in $iis.IIsWebServer.where{$_.ServerBindings -ne $null}) { 
+        $siteId = $site.Location
+        $applications = New-Object System.Collections.ArrayList
+        
+        # in IIS 6 the app for the website is the root virtual directory
+        $mainApp = $iis.IIsWebVirtualDir.where{$_.Location -eq "$SiteId/root"}
+        $virtualDirectories =  New-Object System.Collections.ArrayList
+        $mainVirtualDir = [PSCustomObject]@{ 
+                    Path = '/';
+                    PhysicalPath = $mainApp.Path.replace('%SystemDrive%','C:'); # TODO - resolve for mount & local
+                }
+        $virtualDirectories.add($mainVirtualDir) | Out-Null   
+
+        # virtual directories are IIsWebVirtualDir elements with no app name
+        ForEach ($virtualDirectory in $iis.IIsWebVirtualDir.where{
+            $_.Location.StartsWith("$SiteId/root/") -and
+            $_.AppFriendlyName -eq $null}){
+                $virtualDirectories.add([PSCustomObject]@{ 
+                    Path = '/' + $virtualDirectory.Location.Substring("$SiteId/root/".Length);
+                    PhysicalPath = $virtualDirectory.Path.replace('%SystemDrive%','C:'); # TODO - resolve for mount & local
+                }) | Out-Null
+            }             
+        $applications.add([PSCustomObject]@{ 
+                Path = '/';
+                ApplicationPool = ''; # TODO
+                VirtualDirectories = $virtualDirectories;
+            }) | Out-Null
+
+        # apps are IisWebDirectory elements with an app name
+        ForEach ($application in $iis.IIsWebDirectory.where{
+            $_.Location.StartsWith("$SiteId/root/") -and
+            $_.AppFriendlyName -ne $null}){
+            $path = $application.Location.Substring("$SiteId/root/".Length)
+            $virtualDirectories =  New-Object System.Collections.ArrayList
+            $virtualDirectories.add([PSCustomObject]@{ 
+                    Path = '/';
+                    PhysicalPath = "$($mainVirtualDir.PhysicalPath)\$path"
+                }) | Out-Null  
+            $applications.add([PSCustomObject]@{ 
+                Path = '/' + $path;
+                ApplicationPool = $application.AppPoolId;
+                VirtualDirectories = $virtualDirectories;
+            }) | Out-Null
+        }
+
+        $bindings = New-Object System.Collections.ArrayList
+        $bindings.add([PSCustomObject]@{ 
+            Protocol = 'http'; #TODO - discover protocol from metabase
+            BindingInformation = $site.ServerBindings
+        }) | Out-Null
+
+        $Websites.add([PSCustomObject]@{ 
+                    Name = $site.ServerComment;
+                    ID = $siteId;
+                    Applications = $applications;
+                    Bindings = $bindings;
+            }) | Out-Null
+    }
+
     $ManifestResult.FeatureName = ''    
     $ManifestResult.Status = 'Present'
     $ManifestResult.Websites = $Websites
@@ -91,6 +151,9 @@ if (Test-Path -Path $MetabasePath) {
     if ($AspNetInstalled -eq $true){        
         $ManifestResult.AspNetStatus = 'Present'
     }
+
+    #TODO 
+    $ManifestResult.AspNet35Status = 'Absent'
 }
 
 return $ManifestResult 
