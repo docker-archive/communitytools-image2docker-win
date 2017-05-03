@@ -41,6 +41,7 @@ function IncludePath([string[]] $pathParts) {
 
 function ProcessDirectory([System.Text.StringBuilder] $DirectoryBuilder, 
                           [System.Text.StringBuilder] $CopyBuilder,
+                          [System.Text.StringBuilder] $AclBuilder,
                           [string] $SourcePath,
                           [bool] $FirstDirectory) {
     Write-Verbose "Processing source directory: $SourcePath"  
@@ -55,6 +56,12 @@ function ProcessDirectory([System.Text.StringBuilder] $DirectoryBuilder,
 
     $copy = 'COPY ["{0}", "{1}"]' -f (Split-Path $SourcePath -Leaf),($targetPath -Replace "\\","/")
     $null = $CopyBuilder.AppendLine($copy)
+
+    $null = $AclBuilder.AppendLine('RUN $path=' + "'C:$targetPath'; ``")
+    $null = $AclBuilder.AppendLine('    $acl = Get-Acl $path; `')
+    $null = $AclBuilder.AppendLine('    $newOwner = [System.Security.Principal.NTAccount](''BUILTIN\IIS_IUSRS''); `')
+    $null = $AclBuilder.AppendLine('    $acl.SetOwner($newOwner); `')
+    $null = $AclBuilder.AppendLine('    dir -r $path | Set-Acl -aclobject  $acl')
 
     $fullSourcePath = $SourcePath
     if ($global:SourceType -eq [SourceType]::Image -or
@@ -127,7 +134,8 @@ if ($Artifact.Status -eq 'Present') {
         # process the main site path
         $DirectoryBuilder = New-Object System.Text.StringBuilder
         $CopyBuilder = New-Object System.Text.StringBuilder
-        ProcessDirectory -DirectoryBuilder $DirectoryBuilder -CopyBuilder $CopyBuilder -SourcePath $mainVirtualDir.PhysicalPath -FirstDirectory $true
+        $AclBuilder = New-Object System.Text.StringBuilder
+        ProcessDirectory -DirectoryBuilder $DirectoryBuilder -CopyBuilder $CopyBuilder -AclBuilder $AclBuilder -SourcePath $mainVirtualDir.PhysicalPath -FirstDirectory $true
 
         # creating the website creates the default app & vdir underneath it
         $sourcePath = $mainVirtualDir.PhysicalPath
@@ -199,6 +207,9 @@ if ($Artifact.Status -eq 'Present') {
         $null = $ResultBuilder.AppendLine('')
 
         $null = $ResultBuilder.AppendLine($CopyBuilder.ToString().Trim().TrimEnd('``'))
+        $null = $ResultBuilder.AppendLine('')   
+
+        $null = $ResultBuilder.AppendLine($AclBuilder.ToString().Trim().TrimEnd('``'))
         $null = $ResultBuilder.AppendLine('')   
     }
 }
