@@ -12,7 +12,7 @@
 RootModule = 'Image2Docker.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.8.2'
+ModuleVersion = '1.8.3'
 
 # Supported PSEditions
 ### NOTE: This module will not work with PowerShell Core.
