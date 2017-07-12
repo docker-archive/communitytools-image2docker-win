@@ -1,5 +1,5 @@
 # escape=`
-FROM microsoft/iis:windowsservercore-10.0.14393.1066
+FROM microsoft/iis:windowsservercore-10.0.14393.1358
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
 # disable DNS cache so container addresses always fetched from Docker

@@ -1,6 +1,6 @@
 # Image2Docker
 
-`Image2Docker` is a PowerShell module which ports existing Windows application workloads from virtual machines to Docker images. It supports multiple application types, but the initial focus is on IIS. You can use `Image2Docker` to extract [ASP.NET websites from a VM](https://blog.docker.com/2016/12/convert-asp-net-web-servers-docker-image2docker/), so you can run them in a Docker container with no application changes.
+`Image2Docker` is a PowerShell module which ports existing Windows application workloads to Docker. It supports multiple application types, but the initial focus is on [IIS and ASP.NET apps](docs/IIS.md). You can use `Image2Docker` to extract [ASP.NET websites from a VM](https://blog.docker.com/2016/12/convert-asp-net-web-servers-docker-image2docker/) - or from the local machine or a remote machine. Then so you can run your existing apps in Docker containers on Windows, with no application changes.
 
 ## Documentation
 
@@ -9,7 +9,7 @@
 ## Introduction
 
 This project aims to provide a framework to simplify the creation of Dockerfiles for Windows Docker
-images, based upon analysis of existing WIM or VHDX image files.
+images, based upon analysis of existing Windows machines.
 
 Microsoft Windows 10 and Windows Server 2016 introduce new capabilities for containerizing applications. 
 There are two types of container formats supported on the Microsoft Windows platform:
@@ -19,7 +19,7 @@ There are two types of container formats supported on the Microsoft Windows plat
 
 ## Prerequisites
 
-Windows Server 2016, or Windows 10 with the Anniversary Update is required to use `Image2Docker`. 
+You do not need Docker installed to use Image2Docker - the only requirement is PowerShell 5.0.
 
 `Image2Docker` generates a [Dockerfile](https://docs.docker.com/engine/reference/builder/) which you can build into a Docker image. The system running the `ConvertTo-Dockerfile` command does not need Docker installed, but you will need [Docker setup on Windows](https://github.com/docker/labs/blob/master/windows/windows-containers/Setup.md) to build images and run containers.
 

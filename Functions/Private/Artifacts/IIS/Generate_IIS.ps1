@@ -85,6 +85,7 @@ if ($Artifact.Status -eq 'Present') {
     if (Test-Path -Path $ConfigPath) {
         Copy-Item $ConfigPath $ManifestPath -Recurse    
     }
+    $DockerfileTemplate = 'Dockerfile-IIS.template'
     if ($Artifact.AspNetStatus -eq 'Present') {
         $DockerfileTemplate = 'Dockerfile-ASPNET.template'
     }
