@@ -1,4 +1,4 @@
-﻿Function Discover_SqlServer {
+Function Discover_SqlServer {
 <#
 .SYNOPSIS
 Scans for presence of the MSMQ Windows feature 
@@ -42,18 +42,19 @@ function GetSQLInstances {
         ArgumentList = 'load "HKLM\{0}" "{1}\Windows\System32\Config\SOFTWARE"' -f $TempKey, $MountPath
         Wait = $true
     }
-    Start-Process @RegistryMount
+    Start-Process @RegistryMount -WindowStyle Hidden
     Write-Verbose -Message ('Finished loading the SOFTWARE registry hive from {0}' -f $MountPath)
 
     ### Define empty array to hold SQL instances
     $SqlInstances = @()
 
     ### Obtain registry paths for SQL instances
-    $PathList = Get-ChildItem -Path 'HKLM:\$TempKey\Microsoft\Microsoft SQL Server\Instance Names\SQL'
-
+	#$PathList = @()
+	$PathList = (Get-ItemProperty "HKLM:\$TempKey\Microsoft\Microsoft SQL Server\").InstalledInstances
+		
     foreach ($Item in $PathList) {
-        $SqlInstances += $Item.Name
-        Write-Verbose -Message ('Found a new SQL Server instance: {0}' -f $DisplayName)
+        $SqlInstances += $Item
+        Write-Verbose -Message ('Found a new SQL Server instance: {0}' -f $Item)
     }
 
     ### Unmount the SOFTWARE registry hive from the mounted image
