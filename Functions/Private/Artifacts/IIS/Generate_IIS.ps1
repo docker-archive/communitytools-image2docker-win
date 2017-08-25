@@ -163,7 +163,7 @@ if ($Artifact.Status -eq 'Present') {
                 $newApp = "    New-WebApplication -Name '$appName' -Site '$($Site.Name)' -PhysicalPath 'C:$targetPath' -Force; ``"
                 $null = $AppBuilder.AppendLine($newApp)                
                 if ($sourcePath -ne $mainVirtualDir.PhysicalPath) {
-                    ProcessDirectory -DirectoryBuilder $DirectoryBuilder -CopyBuilder $CopyBuilder -SourcePath $sourcePath                  
+                    ProcessDirectory -DirectoryBuilder $DirectoryBuilder -CopyBuilder $CopyBuilder -AclBuilder @AclBuilder -SourcePath $sourcePath                  
                 }
             }
 
@@ -190,7 +190,7 @@ if ($Artifact.Status -eq 'Present') {
                 $null = $AppBuilder.AppendLine($newDir)
 
                 if ($sourcePath -ne $mainVirtualDir.PhysicalPath) {           
-                    ProcessDirectory -DirectoryBuilder $DirectoryBuilder -CopyBuilder $CopyBuilder -SourcePath $sourcePath
+                    ProcessDirectory -DirectoryBuilder $DirectoryBuilder -CopyBuilder $CopyBuilder -AclBuilder @AclBuilder -SourcePath $sourcePath
                 }
             }
         }      
