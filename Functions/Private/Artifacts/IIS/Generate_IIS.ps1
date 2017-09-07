@@ -68,6 +68,7 @@ function ProcessDirectory([System.Text.StringBuilder] $DirectoryBuilder,
         $global:SourceType -eq [SourceType]::Remote) {
         $fullSourcePath = $MountPath + $targetPath
     }
+    Write-Verbose "Copying content from source: $SourcePath, to: $ManifestPath"  
     Copy-Item $fullSourcePath $ManifestPath -Recurse -Force
 }
 
@@ -141,7 +142,11 @@ if ($Artifact.Status -eq 'Present') {
         # creating the website creates the default app & vdir underneath it
         $sourcePath = $mainVirtualDir.PhysicalPath
         $targetPath = $sourcePath.Substring(2)
-        $newSite = "RUN New-Website -Name '$($Site.Name)' -PhysicalPath 'C:$targetPath' -Port $($mainBinding.BindingInformation.split(':')[-2]) -Force; ``"
+        $appPool = 'DefaultAppPool'
+        if ($Artifact.AspNet35Status -eq 'Present') {
+            $appPool = ".NET v2.0"
+        }
+        $newSite = "RUN New-Website -Name '$($Site.Name)' -PhysicalPath 'C:$targetPath' -Port $($mainBinding.BindingInformation.split(':')[-2]) -ApplicationPool '$appPool' -Force; ``"
         $AppBuilder = New-Object System.Text.StringBuilder
         $null = $AppBuilder.AppendLine($newSite)
 

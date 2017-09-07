@@ -1,5 +1,5 @@
 # escape=`
-FROM microsoft/aspnet:3.5-windowsservercore-10.0.14393.1198
+FROM microsoft/aspnet:3.5-windowsservercore-10.0.14393.1480
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
 # disable DNS cache so container addresses always fetched from Docker
