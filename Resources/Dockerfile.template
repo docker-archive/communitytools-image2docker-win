@@ -1,10 +1,3 @@
 # escape=`
-FROM microsoft/windowsservercore:10.0.14393.1593
+FROM microsoft/windowsservercore:10.0.14393.1715
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
-
-# disable DNS cache so container addresses always fetched from Docker
-RUN Set-ItemProperty -path 'HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters' -Name ServerPriorityTimeLimit -Value 0 -Type DWord
-
-# Wait-Service is a tool from Microsoft for monitoring a Windows Service
-ADD https://raw.githubusercontent.com/Microsoft/Virtualization-Documentation/live/windows-server-container-tools/Wait-Service/Wait-Service.ps1 /
-
