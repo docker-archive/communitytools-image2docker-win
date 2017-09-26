@@ -95,7 +95,7 @@ if ($Artifact.Status -eq 'Present') {
     }
     $ResultBuilder = GetDockerfileBuilder($DockerfileTemplate)
 
-    if ($Artifact.FeatureName.length -gt 0) {
+    if ($global:IncludeWindowsFeatures -and $Artifact.FeatureName.length -gt 0) {
         $null = $ResultBuilder.AppendLine("RUN Enable-WindowsOptionalFeature -Online -FeatureName $($Artifact.FeatureName.Replace(';',','))")
         $null = $ResultBuilder.AppendLine('')
     }

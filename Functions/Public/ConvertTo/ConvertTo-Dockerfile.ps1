@@ -100,7 +100,10 @@
         [Switch] $Local,
 
         [Parameter(Mandatory = $false)]
-        [string] $RemotePath
+        [string] $RemotePath,
+        
+        [Parameter(Mandatory = $false)]
+        [Switch] $IncludeWindowsFeatures
     )
 
     # TODO - validat eLOcal & ImagePath
@@ -115,6 +118,9 @@
     else {
         $OutputPath = GenerateOutputFolder -Path $OutputPath
     }
+
+    # set features flag:
+    $global:IncludeWindowsFeatures = $IncludeWindowsFeatures
 
     # load the source - local drive, or VHD
     $global:SourceType = [SourceType]::Local
