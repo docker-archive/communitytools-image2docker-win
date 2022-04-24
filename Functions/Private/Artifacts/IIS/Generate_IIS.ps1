@@ -68,6 +68,7 @@ function ProcessDirectory([System.Text.StringBuilder] $DirectoryBuilder,
         $global:SourceType -eq [SourceType]::Remote) {
         $fullSourcePath = $MountPath + $targetPath
     }
+    Write-Verbose "Copying content from source: $SourcePath, to: $ManifestPath"  
     Copy-Item $fullSourcePath $ManifestPath -Recurse -Force
 }
 
@@ -85,6 +86,7 @@ if ($Artifact.Status -eq 'Present') {
     if (Test-Path -Path $ConfigPath) {
         Copy-Item $ConfigPath $ManifestPath -Recurse    
     }
+    $DockerfileTemplate = 'Dockerfile-IIS.template'
     if ($Artifact.AspNetStatus -eq 'Present') {
         $DockerfileTemplate = 'Dockerfile-ASPNET.template'
     }
@@ -93,7 +95,7 @@ if ($Artifact.Status -eq 'Present') {
     }
     $ResultBuilder = GetDockerfileBuilder($DockerfileTemplate)
 
-    if ($Artifact.FeatureName.length -gt 0) {
+    if ($global:IncludeWindowsFeatures -and $Artifact.FeatureName.length -gt 0) {
         $null = $ResultBuilder.AppendLine("RUN Enable-WindowsOptionalFeature -Online -FeatureName $($Artifact.FeatureName.Replace(';',','))")
         $null = $ResultBuilder.AppendLine('')
     }
@@ -140,7 +142,11 @@ if ($Artifact.Status -eq 'Present') {
         # creating the website creates the default app & vdir underneath it
         $sourcePath = $mainVirtualDir.PhysicalPath
         $targetPath = $sourcePath.Substring(2)
-        $newSite = "RUN New-Website -Name '$($Site.Name)' -PhysicalPath 'C:$targetPath' -Port $($mainBinding.BindingInformation.split(':')[-2]) -Force; ``"
+        $appPool = 'DefaultAppPool'
+        if ($Artifact.AspNet35Status -eq 'Present') {
+            $appPool = ".NET v2.0"
+        }
+        $newSite = "RUN New-Website -Name '$($Site.Name)' -PhysicalPath 'C:$targetPath' -Port $($mainBinding.BindingInformation.split(':')[-2]) -ApplicationPool '$appPool' -Force; ``"
         $AppBuilder = New-Object System.Text.StringBuilder
         $null = $AppBuilder.AppendLine($newSite)
 
